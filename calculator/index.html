@@ -62,7 +62,7 @@ p { margin: 0; }
 .field { display: grid; gap: 6px; }
 .field label { font-weight: 600; font-size: 14px; }
 .field .hint { font-size: 12.5px; color: var(--muted); }
-input[type="number"], select { font: 500 16px var(--font-num); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
+input[type="number"], input[type="text"], select { font: 500 16px var(--font-num); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
 select { font-family: var(--font-body); }
 .money { position: relative; }
 .money span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-family: var(--font-num); }
@@ -140,7 +140,7 @@ td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numer
       </div>
       <div class="field">
         <label for="bill">Monthly compute spend</label>
-        <div class="money"><span>$</span><input id="bill" type="number" min="0" step="100" value="14500"></div>
+        <div class="money"><span>$</span><input id="bill" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="14500"></div>
         <div class="hint" id="billHint"></div>
       </div>
       <div class="field">
@@ -462,6 +462,7 @@ function drawChart(rows, unit) {
   g += `<rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="hit"/>`;
   svg.innerHTML = g;
   const tip = $('#tip'), xh = svg.querySelector('#xh');
+  tip.style.display = 'none';
   const show = ev => {
     const rect = svg.getBoundingClientRect();
     const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
@@ -495,7 +496,10 @@ document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click'
   document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
   fillRates(); calc();
 }));
+$('#bill').addEventListener('input', e => { const v = e.target.value.replace(/[^0-9]/g, ''); if (v !== e.target.value) e.target.value = v; });
+document.querySelectorAll('input[type="number"]').forEach(el => el.setAttribute('inputmode', 'numeric'));
 document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calc));
+document.addEventListener('pointerdown', e => { if (!$('#chartbox').contains(e.target)) { $('#tip').style.display = 'none'; const xh = document.querySelector('#xh'); if (xh) xh.setAttribute('visibility', 'hidden'); } });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(demo, 120); });
 const mq = window.matchMedia('(prefers-color-scheme: dark)');
 mq.addEventListener && mq.addEventListener('change', demo);
