@@ -1,0 +1,1723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AiRBRX Onboarding v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f26b2a; --orange2:#f7913d; --orange-soft:#fff1e8; --ink:#18181b; --ink2:#3f3f46; --muted:#71717a;
+  --line:#e4e4e7; --bg:#f4f4f5; --card:#fff; --good:#16a34a; --good-soft:#e8f7ee; --warn:#b45309; --warn-soft:#fef3c7;
+  --bad:#dc2626; --purple:#7c6fd6;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit}
+code,.mono{font-family:var(--mono);font-size:.92em}
+a{color:var(--orange)}
+[hidden]{display:none!important}
+
+/* concept banner + header */
+.concept{position:sticky;top:0;z-index:50;background:#18181b;color:#e4e4e7;font-size:12.5px;padding:7px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.concept b{color:#fff}
+.concept button{background:#3f3f46;color:#fff;border:0;border-radius:6px;padding:3px 10px;font-size:12px}
+.top{background:#fff;border-bottom:1px solid var(--line);padding:12px 16px}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand span{color:var(--orange)}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.stepper button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.stepper button .n{width:20px;height:20px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-size:11.5px;font-weight:600}
+.stepper button.on{border-color:var(--orange);color:var(--ink);font-weight:600}
+.stepper button.on .n{background:var(--orange);color:#fff}
+.stepper button.done .n{background:var(--good);color:#fff}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 80px}
+.screen{display:none}
+.screen.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* generic */
+.card{background:var(--card);border-radius:16px;border:1px solid var(--line);padding:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;background:linear-gradient(90deg,var(--orange),var(--orange2));color:#fff;box-shadow:0 4px 14px rgba(242,107,42,.25)}
+.btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:7px 12px;font-size:13.5px}
+.btn.big{padding:14px 22px;font-size:16.5px}
+.linkbtn{border:0;background:none;color:var(--orange);font-weight:600;padding:0;text-decoration:underline;text-underline-offset:3px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.h1{font-size:46px;line-height:1.06;letter-spacing:-.03em;margin:8px 0 14px;font-weight:800}
+.h2{font-size:24px;letter-spacing:-.02em;margin:0 0 6px;font-weight:700}
+.h3{font-size:18px;letter-spacing:-.01em;margin:0 0 4px;font-weight:700}
+.eyebrow{font-size:13px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.06em}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-family:var(--mono);font-size:13px;word-break:break-all}
+.copy{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-family:Inter,sans-serif;white-space:nowrap}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:600;color:var(--ink2)}
+.field input,.field select{border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;background:#fff;outline:none;width:100%}
+.field input:focus,.field select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(242,107,42,.15)}
+.field .err{color:var(--bad);font-size:12.5px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#18181b;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw}
+.tbc{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:1px 6px;font-size:12px;font-weight:600;white-space:nowrap}
+
+/* design notes */
+.note{border:1px dashed #c4b5fd;background:#f5f3ff;color:#4c1d95;border-radius:12px;padding:12px 14px;font-size:13px;margin:0 0 18px}
+.note b{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.note ul{margin:0;padding-left:18px}
+.note .fn{display:inline-block;margin-top:6px;background:#ede9fe;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600}
+body.notes-off .note{display:none}
+
+/* ===== 1. sign up (hero) ===== */
+.hero{display:grid;grid-template-columns:1fr 1.05fr;grid-template-areas:"copy vis";gap:6px 36px;align-items:stretch;padding:12px 0 20px}
+.hero-copy{grid-area:copy}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--orange);line-height:1.1}
+.stat .l{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.hook{font-size:16px;font-weight:600;margin:0 0 16px;padding-left:12px;border-left:3px solid var(--orange)}
+.band{background:linear-gradient(120deg,#18181b,#3f3f46);color:#fff;border-radius:18px;padding:20px 22px;display:grid;grid-template-columns:1fr 1.6fr;gap:20px;align-items:center;scroll-margin-top:110px}
+.band .h2{color:#fff;margin:0}
+.band .sub{opacity:.8;font-size:14px;margin-top:4px}
+.band form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start}
+.band .field{margin:0}
+.band .field label{color:#d4d4d8}
+.band .field input{border-color:#52525b}
+.band .err{color:#fca5a5}
+.band .btn{align-self:end;height:44px;white-space:nowrap}
+.band .fine{color:#a1a1aa;grid-column:1/-1;margin:0}
+.band .steps3{margin:12px 0 0}
+.band .steps3 span{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff}
+.hdr-start{margin-left:auto}
+.sso{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sso button{display:flex;align-items:center;justify-content:center;gap:10px;height:44px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#18181b;font-weight:600}
+.sso button:hover{background:#f4f4f5}
+.sso svg{width:18px;height:18px}
+.or{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#a1a1aa;font-size:12.5px;margin:-2px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:#52525b}
+.hero-vis{grid-area:vis;display:flex}
+.lead{font-size:18.5px;color:var(--ink2);margin:0 0 16px}
+.steps3{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.steps3 span{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 5px;font-size:13.5px;font-weight:600}
+.steps3 i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-size:12px}
+.signup-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+.signup-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.signup-row .field{margin-bottom:10px}
+.fine{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.scrollhint{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:14px}
+.scrollhint a{color:var(--muted);text-decoration:none;border-bottom:1px dashed #d4d4d8}
+
+/* money drain visual */
+.drain{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.07);display:flex;flex-direction:column;width:100%}
+.drchart{flex:1;min-height:140px;position:relative}
+.dr-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:118px;background:#fafafa}
+.tile .lbl{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.tile .val{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile .sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+#drBal{color:var(--bad);transition:color .4s}
+.drain.saved #drBal{color:var(--ink)}
+.lane{position:relative;height:56px;border-radius:999px;background:repeating-linear-gradient(90deg,#f4f4f5 0 10px,#fafafa 10px 20px);overflow:hidden}
+.coin{position:absolute;left:0;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:#fbbf24;border:2px solid #d97706;color:#78350f;font-size:12px;font-weight:800;display:grid;place-items:center;will-change:transform,opacity}
+.coin.kept{background:#bbf7d0;border-color:var(--good);color:#14532d}
+.mem{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;background:linear-gradient(160deg,var(--orange),var(--orange2));color:#fff;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap;transition:all .45s cubic-bezier(.2,1.4,.4,1);z-index:2;box-shadow:0 6px 16px rgba(242,107,42,.35)}
+.drain.saved .mem{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.dr-host{margin:14px 0 10px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.dr-host .lbl{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.hostbox{font-family:var(--mono);font-size:13px;border:1px solid #d4d4d8;border-radius:8px;padding:8px 10px;background:#fff;min-height:38px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .3s,background .3s}
+.hostbox.typing{border-color:var(--orange);box-shadow:0 0 0 3px rgba(242,107,42,.15)}
+.hostbox.ok{border-color:var(--good);background:var(--good-soft)}
+.hostbox .sel{background:#bfdbfe}
+.hostbox .caret{display:inline-block;width:1px;height:14px;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#drChart{position:absolute;inset:0;width:100%;height:100%;display:block}
+.dr-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+.dr-cap{font-weight:700;font-size:15px;min-height:1.5em}
+.dr-legend{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin-top:2px}
+.dr-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+
+/* below the fold */
+.section{margin-top:28px}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.titem{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+.titem b{display:block;margin-bottom:4px}
+.titem p{margin:0;font-size:14px;color:var(--ink2)}
+.soc{display:flex;gap:16px;align-items:center;background:linear-gradient(120deg,#14532d,#15803d);color:#fff;border-radius:14px;padding:16px 20px;margin-bottom:12px}
+.soc .ic{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:22px;flex:none}
+.soc b{font-size:17px}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+input[type=range]{accent-color:var(--orange);width:100%}
+.slider-row{display:grid;grid-template-columns:1fr 54px;gap:10px;align-items:center;margin-bottom:4px}
+.slider-row label{font-size:13.5px;font-weight:600;color:var(--ink2)}
+.slider-row output{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:13.5px}
+.dime{display:flex;align-items:center;gap:14px;margin:4px 0 12px}
+.dime .from,.dime .to{font-size:34px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.dime .from{color:#a1a1aa;text-decoration:line-through;text-decoration-thickness:3px}
+.dime .to{color:var(--orange)}
+.dime .ar{font-size:24px;color:#a1a1aa}
+.result{background:linear-gradient(160deg,#fff7f1,#fff);border:1px solid #fde0cc;border-radius:14px;padding:20px}
+.result .big{font-size:40px;font-weight:800;letter-spacing:-.03em;color:var(--orange);line-height:1.1;font-variant-numeric:tabular-nums}
+.result .kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f4e4d8;font-size:14px}
+.result .kv:last-of-type{border-bottom:0}
+.bars{margin:14px 0 6px}
+.bars .b{height:24px;border-radius:6px;margin:4px 0;display:flex;align-items:center;padding-left:8px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;transition:width .3s}
+.assume{font-size:12.5px;color:var(--muted);margin-top:10px}
+.mix .slider-row{margin-bottom:0}
+.mix input[type=range]{margin:0 0 8px}
+.wl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px;margin:6px 0 10px}
+.wl span{color:var(--ink2)}.wl b{font-variant-numeric:tabular-nums;text-align:right}
+.wl .z{color:var(--muted);font-weight:500}
+details.assump{margin-top:6px;font-size:13.5px}
+details.assump summary{cursor:pointer;font-weight:600;color:var(--ink2)}
+.scan{margin-top:18px;display:flex;flex-direction:column;gap:10px;border:2px dashed #fbd5bd;background:var(--orange-soft);border-radius:14px;padding:16px 18px}
+.scan-h{display:flex;gap:12px;align-items:center}
+.scan-h .h3{margin:0}
+.scan #scanBtn{align-self:flex-start}
+.scan .ic{width:40px;height:40px;flex:none;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:20px}
+.scan ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink2)}
+.scanform{display:flex;gap:8px;flex-wrap:wrap}
+.scanform input{flex:1;min-width:160px}
+.scanform input,.scanform select{border:1px solid #d4d4d8;border-radius:10px;padding:8px 10px;background:#fff}
+.faq details{border-bottom:1px solid var(--line);padding:12px 0}
+.faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--muted);font-weight:400}
+.faq details[open] summary::after{content:"\2212"}
+.faq p{margin:8px 0 0;color:var(--ink2);font-size:14.5px}
+.bottom-cta{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:28px;background:linear-gradient(120deg,#18181b,#3f3f46);color:#fff;border-radius:16px;padding:26px 28px}
+.bottom-cta .h2{color:#fff}
+
+/* ===== 2. connect ===== */
+.tenant-h{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:0}
+.gwline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 18px;color:var(--ink2)}
+.gwline .chip{font-size:14px;background:var(--orange-soft);border-color:#fbd5bd}
+.ccard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px}
+.ccard.dim{opacity:.5;pointer-events:none}
+.ccard-h{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.ccard-h .num{width:30px;height:30px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.ccard-h .num.ok{background:var(--good)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:13.5px}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.help{font-size:14px;color:var(--muted);margin:0 0 10px}
+.samplebox{background:var(--orange-soft);border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:12px}
+.detected{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13.5px;background:var(--good-soft);border-radius:10px;padding:10px 12px;margin-bottom:12px;word-break:break-all}
+.detected .k{color:var(--muted)}
+.warnbox{background:var(--warn-soft);color:#7c2d12;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:12px}
+.console{background:#0f0f12;color:#d4d4d8;border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:12.5px;min-height:24px;margin-top:12px;word-break:break-all}
+.console .ok{color:#4ade80}
+.toolpick{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:start}
+.toolpick select{border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;background:#fff;width:100%;font-weight:600}
+.codepanel{background:#0f0f12;color:#e4e4e7;border-radius:12px;padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.7;overflow-x:auto;white-space:pre;margin:0}
+.codepanel mark{background:rgba(242,107,42,.28);color:#fdba74;border-radius:3px;padding:0 2px}
+.codepanel .cm{color:#71717a}
+.codenote{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+.stage{overflow-x:auto;border-radius:12px;margin-top:16px}
+.success{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--good-soft);border:1px solid #bbe5c9;border-radius:14px;padding:16px 18px;margin-top:4px}
+.success .t{font-weight:700;color:#14532d}
+.tourbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted)}
+
+/* ---------- Power BI simulation ---------- */
+.win{position:relative;min-width:980px;border:1px solid #c8c6c4;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.12);font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,Tahoma,Arial,sans-serif;color:#252423}
+.pbi-title{height:34px;background:#f3f2f1;display:flex;align-items:center;justify-content:center;font-size:12px;position:relative;border-bottom:1px solid #e1dfdd}
+.pbi-title .left{position:absolute;left:12px;display:flex;gap:12px;color:#605e5c}
+.winbtns{position:absolute;right:0;top:0;display:flex}
+.winbtns span{width:44px;height:34px;display:grid;place-items:center;font-size:12px;color:#323130}
+.pbi-tabs{display:flex;gap:2px;padding:0 8px;background:#f3f2f1;font-size:13px}
+.pbi-tabs span{padding:6px 12px}
+.pbi-tabs .on{background:#fff;border-radius:4px 4px 0 0;font-weight:600;border-bottom:2px solid #f2c811}
+.pbi-ribbon{display:flex;background:#fff;border-bottom:1px solid #e1dfdd;padding:6px 6px 0;height:96px}
+.rg{display:flex;flex-direction:column;border-right:1px solid #e1dfdd;padding:0 8px}
+.rg .items{display:flex;gap:2px;flex:1}
+.rg .glabel{font-size:11px;color:#605e5c;text-align:center;padding:2px 0 4px}
+.rb{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;width:58px;font-size:11.5px;text-align:center;line-height:1.15;border:1px solid transparent;border-radius:4px;padding:4px 2px;background:none;color:#252423}
+.rb:hover{background:#f3f2f1}
+.rb svg{width:26px;height:26px}
+.rb.wide{width:66px}
+.pbi-body{display:grid;grid-template-columns:44px 1fr 210px;height:430px;background:#eaeaea}
+.pbi-rail{background:#f3f2f1;border-right:1px solid #e1dfdd;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:12px}
+.pbi-rail i{width:22px;height:18px;border:1.5px solid #605e5c;border-radius:2px;display:block}
+.pbi-rail i.on{border-color:#252423;box-shadow:inset 3px 0 0 #f2c811}
+.pbi-canvas{padding:22px;display:flex;align-items:center;justify-content:center}
+.pbi-page{background:#fff;width:100%;height:100%;box-shadow:0 1px 4px rgba(0,0,0,.15);padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.visual{border:1px solid #edebe9;padding:10px;display:flex;flex-direction:column}
+.visual .vt{font-size:13px;font-weight:600;margin-bottom:8px}
+.vbars{display:flex;flex-direction:column;gap:6px;flex:1;justify-content:center}
+.vbar{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;font-size:11px;color:#605e5c}
+.vbar i{height:14px;background:#118dff;display:block}
+.vcols{display:flex;align-items:flex-end;gap:6px;flex:1;padding-top:10px}
+.vcols i{flex:1;background:#12239e;display:block}
+.pbi-panes{background:#fff;border-left:1px solid #e1dfdd;font-size:12.5px;padding:10px 12px}
+.pbi-panes .ph{font-weight:600;font-size:14px;margin-bottom:8px}
+.pbi-panes .tbl{display:flex;gap:6px;align-items:center;padding:3px 0}
+.pbi-status{background:#f3f2f1;border-top:1px solid #e1dfdd;font-size:11.5px;padding:4px 12px;display:flex;gap:14px;color:#605e5c}
+.pbi-status .pg{background:#fff;padding:0 10px;border:1px solid #e1dfdd;border-bottom:2px solid #f2c811}
+.pmenu{position:absolute;background:#fff;border:1px solid #c8c6c4;box-shadow:0 6px 16px rgba(0,0,0,.18);font-size:13px;z-index:5;min-width:190px;padding:4px 0}
+.pmenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 14px;color:#252423;font-family:inherit}
+.pmenu button:hover{background:#f3f2f1}
+.mback{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:8}
+.pdlg{background:#fff;box-shadow:0 12px 40px rgba(0,0,0,.3);position:relative;font-size:14px}
+.pdlg .x{position:absolute;right:14px;top:10px;border:0;background:none;font-size:20px;color:#323130}
+.pdlg h2{font-weight:300;font-size:30px;margin:0 0 18px;letter-spacing:-.01em}
+.pdlg .lab{display:flex;align-items:center;gap:6px;margin:10px 0 4px;font-size:14px}
+.ii{width:14px;height:14px;border:1px solid #605e5c;border-radius:50%;font-size:9px;display:inline-grid;place-items:center;color:#605e5c;font-style:normal}
+.pdlg input[type=text]{width:100%;border:1px solid #8a8886;padding:7px 9px;font-size:14px;font-family:inherit;outline:none;border-radius:0}
+.pdlg input[type=text]:focus{border:2px solid #252423;padding:6px 8px}
+.pdlg input.ok{border-color:#107c10;background:#f1faf1}
+.pdlg .adv{margin:14px 0 2px;font-size:14px;cursor:pointer;user-select:none;border:0;background:none;padding:0;color:#252423;font-family:inherit}
+.radio{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.radio i{width:15px;height:15px;border:1px solid #605e5c;border-radius:50%;display:inline-block;position:relative}
+.radio i.on{border-color:#c19c00;box-shadow:0 0 0 2px #f2c811}
+.radio i.on::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#252423}
+.pbtn{min-width:96px;padding:6px 16px;font-size:14px;border:1px solid #8a8886;background:#fff;font-family:inherit;color:#252423}
+.pbtn.y{background:#f2c811;border-color:#f2c811}
+.dss{width:640px;padding:24px 28px}
+.dss h3{font-size:22px;font-weight:300;margin:0}
+.dss .src{border:1px solid #c8c6c4;height:150px;margin:10px 0;padding:4px}
+.dss .src .it{display:flex;gap:8px;align-items:center;padding:6px 8px;background:#e1dfdd;font-size:13px}
+.dss .srch{border:1px solid #8a8886;padding:5px 8px;font-size:13px;color:#a19f9d;width:260px;margin-top:10px}
+.prog{height:3px;background:#edebe9;overflow:hidden;margin-top:12px}
+.prog i{display:block;height:100%;width:40%;background:#f2c811;animation:slide 1s linear infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+
+/* ---------- Tableau simulation ---------- */
+.tab-win{font-family:"Segoe UI",Arial,sans-serif;color:#333}
+.tab-title{height:30px;background:#fff;border-bottom:1px solid #e6e6e6;display:flex;align-items:center;justify-content:center;font-size:12px;position:relative}
+.tab-menus{display:flex;gap:16px;font-size:13px;padding:5px 12px;border-bottom:1px solid #e6e6e6;background:#fafafa}
+.tab-tools{display:flex;gap:10px;padding:6px 12px;border-bottom:1px solid #e6e6e6;align-items:center}
+.tab-tools i{width:18px;height:16px;border:1.5px solid #8c8c8c;border-radius:2px;display:block}
+.tab-body{display:grid;grid-template-columns:250px 1fr;height:470px}
+.tab-left{border-right:1px solid #e6e6e6;padding:12px;font-size:13px;background:#fafafa}
+.tab-left .sec{font-weight:600;font-size:12px;color:#666;margin:8px 0 6px;display:flex;justify-content:space-between}
+.tab-conn{display:flex;justify-content:space-between;align-items:flex-start;background:#fff;border:1px solid #e0e0e0;padding:6px 8px;position:relative}
+.tab-conn .nm{font-weight:600;font-size:12.5px;word-break:break-all}
+.tab-conn .ty{color:#888;font-size:11.5px}
+.tab-conn button{border:0;background:none;font-size:12px;color:#555;padding:0 4px}
+.tab-left .tb{padding:3px 6px;display:flex;gap:6px;align-items:center}
+.tab-left .tb i{width:12px;height:10px;border:1px solid #1f77b4;display:block}
+.tab-right{display:flex;flex-direction:column}
+.tab-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #e6e6e6;font-size:13px}
+.tab-top .src{font-size:16px}
+.tab-update{border:1px solid #c9c9c9;background:#fff;padding:4px 12px;font-size:12.5px;font-family:inherit}
+.tab-canvas{padding:22px;border-bottom:1px solid #e6e6e6;min-height:110px}
+.tab-pill{display:inline-block;background:#eaf2f8;border:1px solid #9cc3e4;padding:5px 12px;font-size:13px}
+.tab-grid{flex:1;overflow:hidden;font-size:12px}
+.tab-grid table{border-collapse:collapse;width:100%}
+.tab-grid th{background:#f5f5f5;text-align:left;padding:5px 8px;border-right:1px solid #e6e6e6;font-weight:600;color:#555}
+.tab-grid td{padding:4px 8px;border-right:1px solid #f0f0f0;border-bottom:1px solid #f4f4f4;color:#444}
+.tab-bottom{display:flex;border-top:1px solid #e6e6e6;font-size:12.5px;background:#fafafa}
+.tab-bottom span{padding:6px 14px;border-right:1px solid #e6e6e6}
+.tab-bottom .on{background:#fff;font-weight:600}
+.tdlg{width:500px;background:#fff;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:"Segoe UI",Arial,sans-serif}
+.tdlg .hd{background:#f5f5f5;padding:14px 18px 0;position:relative}
+.tdlg .hd .ttl{font-size:19px;color:#333}
+.tdlg .hd .x{position:absolute;right:14px;top:10px;border:0;background:none;font-size:20px;color:#555}
+.tdlg .tt{display:flex;gap:20px;margin-top:16px}
+.tdlg .tt span{padding:6px 12px 8px;font-weight:600;font-size:14px;color:#555}
+.tdlg .tt .on{border-bottom:3px solid #555;color:#333}
+.tdlg .bd{padding:18px 24px 22px}
+.tf{margin-bottom:16px}
+.tf label{display:block;font-size:14px;color:#555;margin-bottom:4px}
+.tf input,.tf select{width:100%;border:0;border-bottom:1px solid #bdbdbd;padding:6px 6px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:#333}
+.tf input:focus{border-bottom:2px solid #1f77b4}
+.tf input.ok{border-bottom:2px solid #2e7d32;background:#f3faf3}
+.tf select{background:#f7f7f7}
+.tsign{float:right;background:#1f6fb4;color:#fff;border:0;padding:8px 26px;font-size:14px;font-weight:600;font-family:inherit}
+
+/* tour */
+#tourLayer{position:fixed;inset:0;z-index:200;pointer-events:none}
+#spot{position:fixed;border-radius:8px;box-shadow:0 0 0 9999px rgba(15,15,20,.55);outline:3px solid var(--orange);outline-offset:2px;transition:all .25s ease}
+#pop{position:fixed;width:330px;max-width:calc(100vw - 20px);background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:16px 18px;pointer-events:auto;font-family:Inter,system-ui,sans-serif;transition:top .25s,left .25s}
+#pop .ps{font-size:11.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.06em}
+#pop .pt{font-weight:700;font-size:16px;margin:2px 0 6px}
+#pop .pb{font-size:14px;color:var(--ink2)}
+#pop .pb code{display:block;background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:8px;word-break:break-all}
+#pop .pa{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pop .skip{margin-left:auto;border:0;background:none;color:var(--muted);font-size:12.5px}
+
+/* ===== 3. see your savings ===== */
+.celebrate{display:flex;gap:16px;align-items:center;background:linear-gradient(90deg,#14532d,#15803d);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:16px}
+.celebrate .ic{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:20px;flex:none}
+.celebrate b{font-size:16px}
+.glance{display:grid;grid-template-columns:1.15fr .85fr 1fr;gap:14px;margin-bottom:14px}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;justify-content:center;min-height:150px}
+.gcard .l{font-size:13px;font-weight:600;color:var(--muted)}
+.gcard .huge{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gcard .huge.o{color:var(--orange)}
+.gcard .s{font-size:13.5px;color:var(--ink2);margin-top:4px;min-height:2.6em}
+.nudge{transition:all .3s}
+.nudge.hot{background:linear-gradient(160deg,var(--orange),var(--orange2));color:#fff;border-color:transparent;box-shadow:0 10px 26px rgba(242,107,42,.35)}
+.nudge.hot .l,.nudge.hot .s{color:#fff}
+.meter{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:99px;transition:width .5s}
+.nudge.hot .meter{background:rgba(255,255,255,.3)}
+.nudge.hot .meter i{background:#fff}
+.billcard{margin-bottom:16px}
+.chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px}
+.chart-head b{font-size:15px}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:3px}
+.democtl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px dashed #c4b5fd;background:#f5f3ff;border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:13.5px;color:#4c1d95}
+.democtl label{display:flex;align-items:center;gap:8px;font-weight:600}
+.democtl select{border:1px solid #c4b5fd;border-radius:8px;padding:5px 8px;background:#fff;font-size:13.5px}
+.democtl label{flex-wrap:wrap;max-width:100%}
+.democtl select{max-width:100%;min-width:0}
+.democtl .muted{color:#6d28d9;font-size:12.5px}
+details.more{margin-top:6px}
+details.more>summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none;padding:12px 0;display:flex;gap:8px;align-items:center}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::before{content:"\25B8";color:var(--muted)}
+details.more[open]>summary::before{content:"\25BE"}
+.kgroup{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px}
+.kpi .v{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .l{font-size:12.5px;color:var(--muted);min-height:2.6em}
+.fixed-tables{align-items:start}
+.fixed-tables table{table-layout:fixed}
+.fixed-tables td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+#auditT td{height:36px}
+#memT td{height:54px}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.t td{padding:7px 8px;border-bottom:1px solid #f4f4f5;vertical-align:top}
+table.t td.mono{font-size:12px}
+.badge{font-size:11.5px;font-weight:600;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.badge.hit{background:var(--good-soft);color:var(--good)}
+.badge.fwd{background:#eef2ff;color:#4338ca}
+.badge.blk{background:#fee2e2;color:#b91c1c}
+.badge.cube{background:#ede9fe;color:#5b21b6}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:250;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .card{max-width:760px;width:100%}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.plan{border:2px solid var(--line);border-radius:12px;padding:14px}
+.plan.rec{border-color:var(--orange)}
+.plan .p{font-size:24px;font-weight:800}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;grid-template-areas:"copy" "vis";gap:16px}
+  .band,.band form{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .stat{padding:10px}.stat .v{font-size:20px}
+  .h1{font-size:34px}
+  .lead{font-size:16.5px}
+  .calc,.grid2,.trust,.glance,.toolpick{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .plans{grid-template-columns:1fr}
+  .signup-row{grid-template-columns:1fr}
+  .tile{min-width:0;padding:8px 10px}
+  .tile .val{font-size:18px}
+  .dr-host{grid-template-columns:1fr;gap:4px}
+  .gcard .huge{font-size:38px}
+  .grid2>*,.glance>*,.card{min-width:0}
+  #s-value .card{overflow-x:auto}
+}
+@media (max-width:420px){
+  .dr-top{grid-template-columns:1fr 1fr;grid-template-areas:"a w" "l l"}
+  .dr-top .acct{grid-area:a}.dr-top .wh{grid-area:w}.dr-top .lane{grid-area:l}
+  .gcard .huge{font-size:34px}
+  .dime .from,.dime .to{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="notes-off">
+
+<div class="concept">
+  <div><b>Concept by Adam Rogowicz. Not the official AiRBRX site.</b> Everything is simulated; nothing you type leaves this page.</div>
+  <div class="row"><button id="notesBtn">Design notes: off</button><button id="restartBtn">Restart</button></div>
+</div>
+
+<header class="top"><div class="top-in">
+  <div class="brand">ai<span>rbrx</span></div>
+  <nav class="stepper" id="stepper"></nav>
+  <button class="btn sm hdr-start" id="hdrStart" data-go="signupBand">Start free</button>
+</div></header>
+
+<main>
+
+<!-- ============ 1. SIGN UP (learn + sign up, one page) ============ -->
+<section class="screen" id="s-signup">
+  <div class="note"><b>Design note: step 1 of 4</b><ul>
+    <li>Learn and Sign up are one page. The first screen is the pitch: a hard-hitting headline, three proof points, and the visual playing the next steps (money leaving, the hostname goes in, the bill bends). Signup sits directly under it.</li>
+    <li>Every section, and the header, has a Start free button that jumps to signup.</li>
+    <li>Leads with memory, not the cube. Detailed explanations link to airbrx.ai.</li>
+    <li>Below the fold is the "can we trust these guys?" scroll: SOC 2 first, then security answers, the calculator and FAQ, written so the visitor can forward them.</li>
+  </ul><span class="fn">Measured here: signed_up</span></div>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">Memory for your dashboards and AI agents</div>
+      <h1 class="h1">Stop paying your warehouse for the same answer twice.</h1>
+      <p class="lead">Your dashboards and AI agents ask the same questions all day. Snowflake and Databricks bill you every single time. AiRBRX remembers the answers.</p>
+      <p class="hook">One AI agent can send millions of repeat queries. You pay for every one.</p>
+      <div class="stats">
+        <div class="stat"><div class="v">10x</div><div class="l">faster repeat answers</div></div>
+        <div class="stat"><div class="v">1</div><div class="l">hostname change to start, and to leave</div></div>
+        <div class="stat"><div class="v">$0</div><div class="l">to start. No credit card.</div></div>
+      </div>
+    </div>
+    <div class="hero-vis">
+      <div class="drain" id="drain" aria-label="Animation: your warehouse bill climbs fast, then slows once AiRBRX is connected">
+        <div class="dr-top">
+          <div class="tile acct"><div class="lbl">Your bill this month</div><div class="val" id="drBal">$0</div><div class="sub" id="drRate">paying for every query</div></div>
+          <div class="lane" id="drLane"><div class="mem">AiRBRX memory</div></div>
+          <div class="tile wh"><div class="lbl">Warehouse</div><div class="val" id="drQ">0</div><div class="sub">queries billed</div></div>
+        </div>
+        <div class="dr-host"><span class="lbl">Server hostname</span><div class="hostbox" id="drHost"></div></div>
+        <div class="drchart"><svg id="drChart" role="img" aria-label="Your bill this month"></svg></div>
+        <div class="dr-legend"><span><i style="background:#d4d4d8"></i>Where your bill was heading</span><span><i style="background:var(--orange)"></i>Your bill</span><span><i style="background:var(--purple)"></i>AiRBRX bill</span></div>
+        <div class="dr-foot"><div class="dr-cap" id="drCap"></div><button class="copy" id="drReplay">Replay</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="band" id="signupBand">
+    <div><div class="h2">Start free in 5 minutes</div><div class="sub">Free until you start growing. Your warehouse, your tools, one hostname.</div>
+      <div class="steps3"><span><i>1</i>Sign up</span><span><i>2</i>Change one hostname</span><span><i>3</i>Watch your bill bend</span></div></div>
+    <form id="signupForm" novalidate>
+      <div class="sso">
+        <button type="button" data-sso="Google"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>
+        <button type="button" data-sso="Microsoft"><svg viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Continue with Microsoft</button>
+      </div>
+      <div class="or">or use your work email</div>
+      <div class="field"><label for="fEmail">Work email</label><input id="fEmail" autocomplete="off" placeholder="jordan@company.com"><span class="err" id="eEmail"></span></div>
+      <div class="field"><label for="fPw">Password</label><input id="fPw" type="password" autocomplete="new-password" placeholder="8+ characters"><span class="err" id="ePw"></span></div>
+      <button class="btn" id="signupBtn">Start free</button>
+      <p class="fine">Prototype: nothing is submitted. <a href="#trust" data-go="trust" style="color:#fdba74">Is it secure?</a> &middot; <a href="#calc" data-go="calc" style="color:#fdba74">What would I save?</a> &middot; <a href="#faq" data-go="faq" style="color:#fdba74">Questions</a></p>
+    </form>
+  </div>
+
+  <!-- below the fold -->
+  <div class="section" id="trust">
+    <div class="sec-head"><div><div class="eyebrow">Security and data</div><div class="h2">Answers for whoever signs off</div></div>
+      <div class="row"><button class="btn ghost sm" id="copySec">Copy for your security team</button><button class="btn sm" data-go="signupBand">Start free</button></div></div>
+    <div class="soc"><div class="ic">&#128737;</div><div><b>SOC 2 Type II expected by the end of 2026.</b><br><span style="opacity:.9;font-size:14px">We never look at your data. Your warehouse still checks every login.</span></div></div>
+    <div class="trust">
+      <div class="titem"><b>Your data stays yours</b><p>Remembered answers are encrypted on AiRBRX storage and never inspected. Large accounts can run AiRBRX inside their own AWS environment.</p></div>
+      <div class="titem"><b>No credentials stored</b><p>Your password or token passes straight through to Snowflake or Databricks. AiRBRX never stores or reads it.</p></div>
+      <div class="titem"><b>Permissions respected</b><p>A remembered answer is tied to the credential and connection that asked for it. Someone without access doesn't get it.</p></div>
+      <div class="titem"><b>Never stale</b><p>You set freshness, down to the millisecond: time limits, table changes, PII rules, or any rule you can write in SQL.</p></div>
+      <div class="titem"><b>Writes go straight through</b><p>Inserts, updates and deletes reach your warehouse untouched and clear the answers they affect.</p></div>
+      <div class="titem"><b>Rogue agents blocked</b><p>Agents guessing credentials or running up a bill get stopped. Every statement is in the audit log.</p></div>
+    </div>
+  </div>
+
+  <div class="section card" id="calc">
+    <div class="eyebrow">Savings estimate</div><div class="h2">What would AiRBRX save you?</div>
+    <p class="muted" style="margin:0 0 18px">Rough numbers are fine. Your free trial measures the real ones.</p>
+    <div class="calc">
+      <div>
+        <div class="grid2" style="gap:12px">
+          <div class="field"><label for="cPlat">Platform</label><select id="cPlat"><option>Snowflake</option><option selected>Databricks</option><option>Postgres</option></select></div>
+          <div class="field"><label for="cSpend">Monthly warehouse bill (USD)</label><input id="cSpend" type="number" min="500" step="500" value="10000"></div>
+        </div>
+        <input id="cSpendR" type="range" min="1000" max="300000" step="1000" value="10000" aria-label="Monthly bill slider" style="margin:-4px 0 16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Where does that bill go? <span class="muted" style="font-weight:400">(rough split)</span></div>
+        <div class="mix">
+          <div class="slider-row"><label for="mBI">Dashboards and BI</label><output id="oBI"></output></div><input id="mBI" type="range" min="0" max="100" value="40">
+          <div class="slider-row"><label for="mAG">AI agents and copilots</label><output id="oAG"></output></div><input id="mAG" type="range" min="0" max="100" value="25">
+          <div class="slider-row"><label for="mAH">Analyst ad hoc queries</label><output id="oAH"></output></div><input id="mAH" type="range" min="0" max="100" value="10">
+          <div class="slider-row"><label for="mPL">Pipelines and ETL</label><output id="oPL"></output></div><input id="mPL" type="range" min="0" max="100" value="25">
+        </div>
+        <div class="muted" style="font-size:12.5px" id="mixNote"></div>
+        <details class="assump"><summary>Pricing assumptions</summary>
+          <div class="field" style="margin-top:10px"><label for="cGb">What your warehouse costs per GB queried (USD)</label><input id="cGb" type="number" min="0.2" step="0.1" value="1.00"></div>
+          <div class="muted" style="font-size:12.5px">AiRBRX charges 10&cent; per GB answered from memory, so every repeat dollar becomes about a dime. <span class="tbc">pricing under review</span></div>
+        </details>
+        <div class="scan" id="scan">
+          <div class="scan-h"><div class="ic">&#128269;</div><div class="h3">Not sure how your tools use your warehouse? Get a free scan.</div></div>
+          <ul>
+            <li>Which dashboards and AI agents query your warehouse most, and how often they repeat themselves</li>
+            <li>What those repeats cost you each month</li>
+            <li>How much AiRBRX could answer from memory, from your real traffic</li>
+          </ul>
+          <p class="muted" style="font-size:13px;margin:0" id="scanHow"></p>
+          <button class="btn ghost" id="scanBtn">Get my free scan</button>
+          <div class="scanform" id="scanForm" hidden>
+            <input id="scanEmail" placeholder="Work email" autocomplete="off">
+            <select id="scanPlat"><option>Snowflake</option><option selected>Databricks</option><option>Postgres</option></select>
+            <button class="btn sm" id="scanSend">Request scan</button>
+          </div>
+        </div>
+      </div>
+      <div class="result">
+        <div class="muted" style="font-size:13px;font-weight:600">Estimated monthly savings</div>
+        <div class="big" id="rSave"></div>
+        <div class="muted" style="font-size:13px" id="rRange"></div>
+        <div class="bars">
+          <div class="b" id="barNow" style="background:#a1a1aa"></div>
+          <div class="b" id="barNew" style="background:linear-gradient(90deg,var(--orange),var(--orange2))"></div>
+        </div>
+        <div class="wl" id="rWl"></div>
+        <div class="kv"><span>AiRBRX meter (10&cent;/GB from memory)</span><b id="rMeter"></b></div>
+        <div class="kv"><span>Recommended plan</span><b id="rTier"></b></div>
+        <div class="kv"><span>Net monthly savings</span><b id="rNet"></b></div>
+        <div class="kv"><span>Return on what you pay AiRBRX</span><b id="rRoi"></b></div>
+        <div class="kv"><span>Plan pays for itself in</span><b id="rPay"></b></div>
+        <button class="btn" style="width:100%;margin-top:12px" data-go="signupBand">Start free with this estimate</button>
+        <div class="assume">Assumes AiRBRX answers this share of each workload from memory: dashboards 70%, AI agents 60%, ad hoc 30%, pipelines 0% (writes always pass through). Placeholders, not a quote, until AiRBRX publishes real customer numbers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section card faq" id="faq">
+    <div class="sec-head"><div class="h2" style="margin:0">Questions</div><button class="btn sm" data-go="signupBand">Start free</button></div>
+    <div class="kgroup" style="margin-top:6px">How it works</div>
+    <details><summary>Do I replace my warehouse?</summary><p>No. Think of AiRBRX as short-term memory and your warehouse as long-term memory. Anything AiRBRX doesn't remember goes straight to your warehouse, exactly as it does today.</p></details>
+    <details><summary>How do I start, and how do I leave?</summary><p>Change one hostname in your BI tool, agent or code. To leave, change it back. No migration, no rewritten queries.</p></details>
+    <details><summary>How is this different from my warehouse's own result cache?</summary><p>A warehouse's built-in result cache only helps when the exact same query text comes back, and it clears easily as data changes. AiRBRX keeps answers in a form that also covers related questions, and only clears what a change actually affects.</p></details>
+    <details><summary>How does it remember related questions?</summary><p>It keeps answers as a data cube. If it has beer sales by taproom and day around Mount Hood, it can answer "sales at Government Camp last week" or "sales by taproom" without asking your warehouse again. <a href="https://airbrx.ai" target="_blank" rel="noopener">More on airbrx.ai</a></p></details>
+    <details><summary>Which answers does it remember?</summary><p>The ones your tools and agents actually ask for. You can add your own rules, and AiRBRX's built-in AI reviews your query history and logs to suggest new ones.</p></details>
+    <details><summary>Can a stale number ever reach a dashboard?</summary><p>Not if you set the rules for it. Freshness is yours to control, down to the millisecond: time limits, table changes, PII rules, or anything you can write in SQL. Writes always clear the answers they affect.</p></details>
+    <details><summary>Will it slow down questions it doesn't remember?</summary><p>No noticeable delay. The gateway adds less than a tenth of a millisecond.</p></details>
+    <details><summary>What happens if AiRBRX goes down?</summary><p><span class="tbc">AiRBRX to confirm</span> whether queries pass straight through to your warehouse.</p></details>
+
+    <div class="kgroup" style="margin-top:18px">AI agents</div>
+    <details><summary>Does it help with AI agents?</summary><p>Most of all. Agents ask the same questions over and over, often worded differently. AiRBRX answers them from memory instead of re-running them on your warehouse.</p></details>
+    <details><summary>Can I see what my AI agents are querying?</summary><p>Yes. The audit log records every statement from every agent, tool and person, at the transaction level.</p></details>
+    <details><summary>What stops a rogue agent?</summary><p>AiRBRX blocks agents that keep guessing credentials and stops runaway query storms before they run up your bill.</p></details>
+
+    <div class="kgroup" style="margin-top:18px">Fit</div>
+    <details><summary>Which platforms and tools work?</summary><p>Snowflake, Databricks and Postgres. Anything that connects with a hostname works: Power BI, Tableau, dbt, Python, JDBC and AI agents.</p></details>
+    <details><summary>Does it help with streaming data?</summary><p>Not much. AiRBRX is built for analytics: dashboards, reports and AI agents asking questions of your data.</p></details>
+    <details><summary>Can it run in our own cloud?</summary><p>Yes, for larger accounts. AiRBRX can run inside your own AWS environment, so your data never leaves it.</p></details>
+    <details><summary>What's next on the roadmap?</summary><p>Routing to cheaper engines like DuckDB when your data sits in open files, one view of AI token and warehouse spend, and hosted Databricks with AiRBRX in front.</p></details>
+
+    <div class="kgroup" style="margin-top:18px">Buying</div>
+    <details><summary>What does it cost?</summary><p>Start is free. Grow is $499 a month. Larger teams get custom pricing. You pay 10&cent; per GB of answers served from memory. <span class="tbc">pricing under review</span></p></details>
+    <details><summary>Is AiRBRX SOC 2 compliant?</summary><p>SOC 2 Type II is expected by the end of 2026.</p></details>
+    <details><summary>How do I get my boss to sign off?</summary><p>Start free and let your trial measure real savings. Then send your security team the answers on this page (there's a copy button), and compare a $499 plan with the warehouse bill it reduces.</p></details>
+  </div>
+
+  <div class="bottom-cta">
+    <div><div class="h2">Give your dashboards and agents a memory.</div><div style="opacity:.8;font-size:15px">Free to start. One hostname change to try it, one to leave.</div></div>
+    <button class="btn big" data-go="signupBand">Start free</button>
+  </div>
+</section>
+
+<!-- ============ 2. CONNECT ============ -->
+<section class="screen" id="s-connect">
+  <div class="note"><b>Design note: step 2 of 4</b><ul>
+    <li>Tenant and gateway are ready the moment they sign up.</li>
+    <li>Defaults to the customer's own warehouse. "Just exploring" points their own Databricks workspace at the Bakehouse sample it already has; a free Databricks account is the last-resort link.</li>
+    <li>"Test connection" proves the first statement really went through the gateway.</li>
+  </ul><span class="fn">Measured here: connected</span></div>
+  <h1 class="tenant-h" id="tenantName">Your tenant</h1>
+  <div class="gwline">Your gateway is ready: <span class="chip"><span id="gwChip">gateway</span></span><button class="copy" data-copy="host">Copy</button></div>
+
+  <div class="ccard" id="cardWh">
+    <div class="ccard-h"><span class="num" id="numWh">&#8250;</span><div><div class="h3">Where's your data?</div><div class="muted" style="font-size:14px">Paste the connection URL you already use. Credentials pass through; AiRBRX doesn't store them.</div></div></div>
+    <div class="tabs" id="platTabs"><button class="on" data-plat="Databricks">Databricks</button><button data-plat="Snowflake">Snowflake</button><button data-plat="Postgres">Postgres</button></div>
+    <p class="help" id="platHelp"></p>
+    <div class="samplebox" id="sampleBox" hidden><b>Just exploring?</b> Every Databricks workspace includes the <span class="mono">samples.bakehouse</span> dataset. Paste your workspace's JDBC URL and we'll point your tool at the sample, so nothing of yours is touched.
+      <div style="margin-top:6px;font-size:13px">No Databricks account? <a href="https://www.databricks.com/try-databricks" target="_blank" rel="noopener">Get a free one</a>, then come back.</div></div>
+    <div class="field"><label for="connIn">Connection URL</label><input id="connIn" class="mono" placeholder="jdbc:databricks://..." autocomplete="off"></div>
+    <div class="row" style="margin:-4px 0 12px"><button class="copy" id="exampleBtn">Use example values</button><button class="linkbtn" id="sampleToggle" style="font-size:13.5px">Just exploring? Use the Bakehouse sample</button></div>
+    <div id="connWarn" class="warnbox" hidden></div>
+    <div class="field" id="pathField" hidden><label for="pathIn">HTTP path</label><input id="pathIn" class="mono" placeholder="/sql/1.0/warehouses/..."></div>
+    <div id="detected" class="detected" hidden></div>
+    <div class="row"><button class="btn" id="testBtn" disabled>Test connection</button><button class="btn ghost" id="toBI" hidden data-nav="bi">Next: point your tool &rarr;</button></div>
+    <div class="console" id="console" hidden></div>
+  </div>
+
+</section>
+
+<!-- ============ 3. POINT YOUR TOOL ============ -->
+<section class="screen" id="s-bi">
+  <div class="note"><b>Design note: step 3 of 4</b><ul>
+    <li>Shows that adoption really is one field, in the tool the customer already uses.</li>
+    <li>The dropdown (Power BI, Tableau, AI agent, JDBC, dbt, Python, other) generates the code sample with the gateway filled in.</li>
+    <li>Power BI and Tableau also get the guided walkthrough, which checks the pasted value so nobody leaves half-connected.</li>
+  </ul><span class="fn">Measured here: tool_pointed</span></div>
+  <h1 class="tenant-h">Point your tool at AiRBRX</h1>
+  <div class="gwline">Your gateway: <span class="chip"><span id="gwChip2">gateway</span></span><button class="copy" data-copy="host">Copy</button></div>
+  <div class="ccard" id="cardTool">
+    <div class="ccard-h"><span class="num" id="numTool">&#8250;</span><div><div class="h3">What are you connecting?</div><div class="muted" style="font-size:14px">Pick your tool. We'll give you the one change to make.</div></div></div>
+    <div class="toolpick">
+      <div>
+        <select id="toolSel" aria-label="Tool">
+          <option value="pbi">Power BI</option>
+          <option value="tab">Tableau</option>
+          <option value="agent">AI agent</option>
+          <option value="jdbc">JDBC (raw)</option>
+          <option value="dbt">dbt</option>
+          <option value="py">Python</option>
+          <option value="other">Something else</option>
+        </select>
+        <div class="row" style="margin-top:12px;flex-direction:column;align-items:stretch;gap:8px">
+          <button class="btn" id="walkBtn">Walk me through it</button>
+          <button class="btn ghost" id="copyCode">Copy code</button>
+          <button class="btn ghost" id="madeBtn">I've made the change</button>
+        </div>
+      </div>
+      <div>
+        <pre class="codepanel" id="codeOut"></pre>
+        <p class="codenote" id="codeNote"></p>
+      </div>
+    </div>
+    <div class="tourbar" id="tourbar" hidden><span id="tourInfo"></span><button class="copy" id="tourRestart">Restart walkthrough</button></div>
+    <div class="stage" id="stage"></div>
+  </div>
+
+  <div class="success" id="biDone" hidden><div><div class="t">Connected through AiRBRX</div><div style="font-size:14px;color:#166534" id="biDoneTxt"></div></div><button class="btn" data-nav="value">See your savings &rarr;</button></div>
+</section>
+
+<!-- ============ 4. SEE YOUR SAVINGS ============ -->
+<section class="screen" id="s-value">
+  <div class="note"><b>Design note: step 4 of 4</b><ul>
+    <li>Glanceable first: what you saved, how much faster, and whether your plan pays for itself. Then the bill curve Abram described: where the bill was heading vs. where it is now, with the small AiRBRX bill underneath.</li>
+    <li>A plan is recommended once measured savings reach twice its price, not when a trial clock runs out.</li>
+    <li>Everything else sits under "Details". Demo clock is compressed so savings build in seconds.</li>
+  </ul><span class="fn">Measured here: first_cache_hit</span></div>
+  <div class="celebrate"><div class="ic">&#10003;</div><div><b>First answer from memory!</b> <span style="opacity:.92;font-size:14px">A repeat dashboard query came back in 140 ms instead of 1.4 s.</span></div></div>
+  <div class="glance">
+    <div class="gcard"><div class="l" id="gSavedL">Saved this month</div><div class="huge o" id="gSaved">$0</div><div class="s" id="gSavedS"></div></div>
+    <div class="gcard"><div class="l">Repeat answers</div><div class="huge">10x</div><div class="s">faster: 140 ms from memory vs. 1.4 s from your warehouse</div></div>
+    <div class="gcard nudge" id="nudge"><div class="l" id="nudgeT">Your plan</div><div class="s" id="nudgeB" style="font-size:15px;font-weight:600;min-height:0"></div><div class="meter"><i id="nudgeM" style="width:0"></i></div><div class="s" id="nudgeS" style="font-size:12.5px"></div><button class="btn ghost sm" id="nudgeBtn" style="margin-top:8px;visibility:hidden;align-self:flex-start">Keep it running</button></div>
+  </div>
+  <div class="card billcard">
+    <div class="chart-head"><b>Your bill this month</b><span class="muted" id="clock"></span></div>
+    <div class="legend" style="margin:6px 0 4px"><span><i style="background:#d4d4d8"></i>Where your bill was heading</span><span><i style="background:var(--orange)"></i>Your bill with AiRBRX</span><span><i style="background:var(--purple)"></i>AiRBRX bill</span></div>
+    <svg id="billChart" viewBox="0 0 640 190" style="width:100%;height:auto;display:block"></svg>
+  </div>
+  <div class="democtl">
+    <b>Demo controls</b>
+    <label>Company size <select id="demoSize"></select></label>
+    <button class="btn ghost sm" id="demoReset">Reset demo</button>
+    <span class="muted" id="demoHint"></span>
+  </div>
+  <details class="more" id="moreDetails"><summary>Details: monthly totals, traffic, memories and audit log</summary>
+    <div class="kgroup">Savings</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="kSaved">$0</div><div class="l" id="kSavedL">Saved this month</div></div>
+      <div class="kpi"><div class="v" id="kLast">Not yet</div><div class="l" id="kLastL">Saved last month</div></div>
+      <div class="kpi"><div class="v" id="kYtd">$0</div><div class="l" id="kYtdL">Saved year to date</div></div>
+      <div class="kpi"><div class="v" id="kProj">$0</div><div class="l" id="kProjL">Projected monthly savings</div></div>
+    </div>
+    <div class="kgroup">Performance</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="kHit">0%</div><div class="l">Answered from memory</div></div>
+      <div class="kpi"><div class="v" id="kCube">0%</div><div class="l">Of those, related questions (not exact repeats)</div></div>
+      <div class="kpi"><div class="v">140 ms</div><div class="l">Median answer from memory, vs 1.4 s direct</div></div>
+      <div class="kpi"><div class="v" id="kAgent">0%</div><div class="l">Of statements from AI agents</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="chart-head"><b>Hourly statements</b><span class="muted" id="kStmt"></span></div>
+      <div class="legend" style="margin:6px 0"><span><i style="background:#fbc8a8;border:1px solid var(--orange);height:10px"></i>Total</span><span><i style="background:#d4d4d8;height:10px"></i>Exact repeats</span><span><i style="background:#7c6fd6;height:10px"></i>Related questions</span></div>
+      <svg id="chart" viewBox="0 0 640 220" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <div class="grid2 fixed-tables">
+      <div class="card"><b>Most-used memories</b> <span class="muted" style="font-size:12.5px">one remembered answer, many questions</span>
+        <table class="t" id="memT" style="margin-top:8px"><colgroup><col><col style="width:96px"><col style="width:72px"><col style="width:78px"></colgroup>
+          <thead><tr><th>Memory</th><th>Questions answered</th><th>Hits</th><th>Saved YTD</th></tr></thead><tbody id="topQ"></tbody></table>
+      </div>
+      <div class="card"><b>Audit log</b> <span class="muted" style="font-size:12.5px">every statement, every agent</span>
+        <table class="t" id="auditT" style="margin-top:8px"><colgroup><col style="width:100px"><col style="width:124px"><col><col style="width:132px"></colgroup>
+          <thead><tr><th>Time</th><th>Principal</th><th>Statement</th><th>Result</th></tr></thead><tbody id="audit"></tbody></table>
+      </div>
+    </div>
+  </details>
+</section>
+</main>
+
+<div id="tourLayer" hidden><div id="spot"></div><div id="pop"><div class="ps" id="popS"></div><div class="pt" id="popT"></div><div class="pb" id="popB"></div><div class="pa" id="popA"></div></div></div>
+
+<script>
+/* ===================== state + helpers ===================== */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const usd = n => '$' + Math.round(n).toLocaleString('en-US');
+const usd2 = n => '$' + (+n).toFixed(2);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EX = {host: 'dbc-1a2b3c4d-5e6f.cloud.databricks.com', path: '/sql/1.0/warehouses/0a1b2c3d4e5f6a7b'};
+const state = {name: '', first: 'Your', email: '', host: '', platform: 'Databricks', dbHost: EX.host, httpPath: EX.path,
+  sfAcct: 'mtnhood-brewing', sfHost: 'mtnhood-brewing.snowflakecomputing.com', pgHost: 'db.mtnhood.internal', pgPort: '5432', pgDb: 'analytics',
+  connected: false, sample: false, plat: 'Databricks', tool: 'pbi', est: null, demoSize: null};
+const SCREENS = [['signup', 'Sign up'], ['connect', 'Connect'], ['bi', 'Point your tool'], ['value', 'See your savings']];
+let current = 'signup';
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (_) {} ta.remove(); }
+  if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1200); }
+}
+function newGateway() {
+  const a = ['daring', 'bright', 'quiet', 'swift', 'steady', 'lucky', 'mellow', 'brisk', 'clever', 'sunny'];
+  const b = ['tulip', 'cedar', 'falcon', 'harbor', 'maple', 'comet', 'otter', 'aspen', 'river', 'ember'];
+  const c = ['rocket', 'bridge', 'lantern', 'anchor', 'beacon', 'summit', 'compass', 'meadow', 'signal', 'canyon'];
+  return `${pick(a)}-${pick(b)}-${pick(c)}.gateway.airbrx.ai`;
+}
+state.host = newGateway();
+
+/* ===================== navigation ===================== */
+function renderStepper() {
+  const idx = SCREENS.findIndex(s => s[0] === current);
+  $('#stepper').innerHTML = SCREENS.map(([id, label], i) =>
+    `<button data-nav="${id}" class="${id === current ? 'on' : ''} ${i < idx ? 'done' : ''}"><span class="n">${i < idx ? '&#10003;' : i + 1}</span>${label}</button>`).join('');
+}
+function show(id) {
+  if (id !== 'bi') endTour();
+  if (current === 'value' && id !== 'value') stopValue();
+  if (current === 'signup' && id !== 'signup') drain.stop();
+  current = id;
+  $$('.screen').forEach(s => s.classList.toggle('active', s.id === 's-' + id));
+  renderStepper();
+  $('#hdrStart').hidden = id !== 'signup';
+  window.scrollTo({top: 0});
+  if (id === 'signup') drain.start();
+  if (id === 'connect') paintTenant();
+  if (id === 'bi') { paintTenant(); renderCode(); }
+  if (id === 'value') { paintTenant(); startValue(); }
+}
+document.addEventListener('click', e => {
+  const n = e.target.closest('[data-nav]'); if (n) { e.preventDefault(); show(n.dataset.nav); return; }
+  const g = e.target.closest('[data-go]');
+  if (g) {
+    e.preventDefault();
+    if (g.dataset.go === 'signupBand') {
+      if (current !== 'signup') show('signup');
+      $('#signupBand').scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => $('#fEmail').focus({preventScroll: true}), 500);
+    }
+    else document.getElementById(g.dataset.go).scrollIntoView({behavior: 'smooth', block: 'start'});
+    return;
+  }
+  const c = e.target.closest('[data-copy]'); if (c) { copyText(state.host, c); }
+});
+$('#notesBtn').onclick = () => { const off = document.body.classList.toggle('notes-off'); $('#notesBtn').textContent = 'Design notes: ' + (off ? 'off' : 'on'); };
+$('#restartBtn').onclick = () => location.reload();
+
+/* ===================== 1a. money-drain animation ===================== */
+const drain = (() => {
+  const D = 9600, TYPE0 = 3200, TYPE1 = 4300, BEND = 4400;          // ms
+  const START = 50000, RATE = 2.2, AFTER = .22;                      // $ per ms before, share still billed after
+  const OLD = 'dbc-7f3a9c.cloud.databricks.com';
+  let raf = null, coinTimer = null, loopTimer = null, t0 = 0, bal = START, billed = 0, last = 0, running = false;
+  const svg = $('#drChart'), host = $('#drHost'), card = $('#drain');
+  let W = 400, H = 130; const L = 8, R = 8, T = 10, B = 18;
+  const X = t => L + (W - L - R) * t / D;
+  const full = RATE * D;                                              // what the month would have cost
+  const Y = v => H - B - (H - B - T) * v / full;
+  const costAt = t => t < BEND ? RATE * t : RATE * BEND + RATE * AFTER * (t - BEND);
+  const feeAt = t => t < BEND ? 0 : RATE * (1 - AFTER) * (t - BEND) / 9;
+  function chart(t) {
+    const box = svg.parentNode; W = Math.max(200, box.clientWidth); H = Math.max(120, box.clientHeight);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    let g = `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="#e4e4e7"/>`;
+    g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(D)}" y2="${Y(full)}" stroke="#d4d4d8" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+    const pts = [], fpts = [];
+    for (let s = 0; s <= t; s += D / 80) { pts.push(`${X(s).toFixed(1)},${Y(costAt(s) + feeAt(s)).toFixed(1)}`); if (s >= BEND) fpts.push(`${X(s).toFixed(1)},${Y(feeAt(s)).toFixed(1)}`); }
+    pts.push(`${X(t).toFixed(1)},${Y(costAt(t) + feeAt(t)).toFixed(1)}`);
+    g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#f26b2a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (t >= BEND) { fpts.push(`${X(t).toFixed(1)},${Y(feeAt(t)).toFixed(1)}`); g += `<polyline points="${fpts.join(' ')}" fill="none" stroke="#7c6fd6" stroke-width="3" stroke-linecap="round"/>`; }
+    g += `<circle cx="${X(t).toFixed(1)}" cy="${Y(costAt(t) + feeAt(t)).toFixed(1)}" r="4.5" fill="#f26b2a"/>`;
+    if (t >= BEND) g += `<line x1="${X(BEND)}" x2="${X(BEND)}" y1="${T}" y2="${H - B}" stroke="#16a34a" stroke-dasharray="3 4"/><text x="${X(BEND) + 5}" y="${T + 10}" font-size="11" font-weight="700" fill="#16a34a">AiRBRX connected</text>`;
+    g += `<text x="${L}" y="${H - 4}" font-size="10" fill="#a1a1aa">Day 1</text><text x="${W - R}" y="${H - 4}" font-size="10" fill="#a1a1aa" text-anchor="end">Day 30</text>`;
+    svg.innerHTML = g;
+  }
+  function hostAt(t) {
+    const gw = state.host;
+    if (t < TYPE0) { host.className = 'hostbox'; host.innerHTML = esc(OLD); return; }
+    if (t < TYPE0 + 350) { host.className = 'hostbox typing'; host.innerHTML = `<span class="sel">${esc(OLD)}</span>`; return; }
+    if (t < TYPE1) { host.className = 'hostbox typing'; const n = Math.ceil(gw.length * (t - TYPE0 - 350) / (TYPE1 - TYPE0 - 350)); host.innerHTML = esc(gw.slice(0, n)) + '<span class="caret"></span>'; return; }
+    host.className = 'hostbox ok'; host.innerHTML = esc(gw) + ' &#10003;';
+  }
+  function caption(t) {
+    $('#drCap').textContent = t < TYPE0 ? 'Every repeat question gets billed again.' : t < BEND ? 'Change one hostname...' : 'Repeats come from memory. Your bill bends.';
+    card.classList.toggle('saved', t >= BEND);
+    $('#drRate').textContent = t < BEND ? 'climbing with every query' : 'only new questions billed';
+  }
+  function coin() {
+    if (!running) return;
+    const t = performance.now() - t0; if (t > D) return;
+    const lane = $('#drLane'), w = lane.clientWidth - 22; if (w <= 0) return;
+    const c = document.createElement('span'); c.className = 'coin'; c.textContent = '$'; lane.appendChild(c);
+    const after = t >= BEND, kept = after && Math.random() > AFTER;
+    if (kept) {
+      const a = c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w / 2 - 6}px)`}], {duration: 650, easing: 'linear'});
+      a.onfinish = () => { c.classList.add('kept'); c.textContent = '✓'; c.animate([{transform: `translateX(${w / 2 - 6}px) scale(1)`, opacity: 1}, {transform: `translateX(${w / 2 - 6}px) translateY(-18px) scale(.6)`, opacity: 0}], {duration: 450}).onfinish = () => c.remove(); };
+    } else {
+      c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w}px)`}], {duration: 1300, easing: 'linear'}).onfinish = () => { c.remove(); billed++; $('#drQ').textContent = billed.toLocaleString('en-US'); };
+    }
+  }
+  function frame(now) {
+    const t = Math.min(D, now - t0);
+    $('#drBal').textContent = usd(costAt(t) + feeAt(t));
+    hostAt(t); caption(t); chart(t);
+    if (t < D && running) raf = requestAnimationFrame(frame);
+    else { clearInterval(coinTimer); if (running) loopTimer = setTimeout(start, 3000); }
+  }
+  function start() {
+    stop(); running = true; billed = 0; $('#drQ').textContent = '0';
+    $$('#drLane .coin').forEach(c => c.remove());
+    if (reduced) { const t = D; $('#drBal').textContent = usd(costAt(t) + feeAt(t)); hostAt(t); caption(t); chart(t); return; }
+    t0 = performance.now(); raf = requestAnimationFrame(frame);
+    coinTimer = setInterval(coin, 170);
+  }
+  function stop() { running = false; cancelAnimationFrame(raf); clearInterval(coinTimer); clearTimeout(loopTimer); }
+  $('#drReplay').onclick = start;
+  return {start, stop};
+})();
+
+/* ===================== 1b. sign up ===================== */
+$('#signupForm').onsubmit = e => {
+  e.preventDefault();
+  const email = $('#fEmail').value.trim(), pw = $('#fPw').value;
+  $('#eEmail').textContent = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? '' : 'Use a work email like name@company.com.';
+  $('#ePw').textContent = pw.length >= 8 ? '' : 'Use at least 8 characters.';
+  if ($('#eEmail').textContent || $('#ePw').textContent) return;
+  state.email = email;
+  const nm = email.split('@')[0].split(/[._-]/)[0];
+  state.first = nm ? nm[0].toUpperCase() + nm.slice(1) : 'Your';
+  state.name = state.first;
+  const b = $('#signupBtn'); b.disabled = true; b.textContent = 'Creating your tenant...';
+  setTimeout(() => { b.disabled = false; b.textContent = 'Start free'; show('connect'); toast('Tenant created. Your gateway is ready.'); }, 900);
+};
+$$('[data-sso]').forEach(b => b.onclick = () => {
+  const p = b.dataset.sso; state.first = 'Jordan'; state.name = 'Jordan'; state.email = 'jordan@mtnhood.com';
+  b.disabled = true; const o = b.innerHTML; b.lastChild.textContent = `Signing in with ${p}...`;
+  setTimeout(() => { b.disabled = false; b.innerHTML = o; show('connect'); toast(`Signed in with ${p} (simulated). Your gateway is ready.`); }, 900);
+});
+function paintTenant() {
+  $('#tenantName').textContent = state.name ? `${state.first}'s tenant` : 'Your tenant';
+  $('#gwChip').textContent = state.host; $('#gwChip2').textContent = state.host;
+}
+
+/* ===================== 1c. calculator + security copy ===================== */
+const PLANS = [
+  {name: 'Start', price: 0, from: 0, label: 'Start (free)'},
+  {name: 'Grow', price: 499, from: 998, label: 'Grow: $499/mo'},
+  {name: 'Custom', price: 2999, from: 5998, label: 'Custom: from about $2,999/mo'}];
+function planFor(savings) { return [...PLANS].reverse().find(t => savings >= t.from); }
+const RATES = {bi: .70, ag: .60, ah: .30, pl: 0};
+const WL = [['bi', 'Dashboards'], ['ag', 'AI agents'], ['ah', 'Ad hoc'], ['pl', 'Pipelines']];
+function calc() {
+  const spend = Math.max(0, +$('#cSpend').value || 0), gb = Math.max(.11, +$('#cGb').value || 1);
+  const m = {bi: +$('#mBI').value, ag: +$('#mAG').value, ah: +$('#mAH').value, pl: +$('#mPL').value};
+  const tot = m.bi + m.ag + m.ah + m.pl || 1;
+  ['BI', 'AG', 'AH', 'PL'].forEach(k => $('#o' + k).textContent = Math.round(100 * m[k.toLowerCase()] / tot) + '%');
+  $('#mixNote').textContent = tot === 100 ? '' : 'Shares are scaled to add up to 100%.';
+  let gross = 0, meter = 0; const per = {};
+  WL.forEach(([k]) => { const cached = spend * m[k] / tot * RATES[k], fee = cached * .10 / gb; per[k] = cached - fee; gross += cached - fee; meter += fee; });
+  const plan = planFor(gross), net = gross - plan.price, total = spend - gross + plan.price, paid = meter + plan.price;
+  $('#rSave').textContent = usd(Math.max(0, gross));
+  $('#rRange').textContent = `Likely range ${usd(gross * .6)} to ${usd(gross * 1.2)} per month, after the 10\u00a2/GB meter`;
+  $('#rWl').innerHTML = WL.map(([k, l]) => `<span>${l}</span>${k === 'pl' ? '<b class="z">writes pass through</b>' : `<b>${usd(per[k])}</b>`}`).join('');
+  $('#barNow').style.width = '100%'; $('#barNow').textContent = 'Today ' + usd(spend);
+  $('#barNew').style.width = Math.max(spend ? total / spend * 100 : 100, 22) + '%'; $('#barNew').textContent = 'With AiRBRX ' + usd(total);
+  $('#rMeter').textContent = usd(meter);
+  $('#rTier').textContent = plan.label;
+  $('#rNet').textContent = usd(net);
+  $('#rRoi').textContent = paid > 0 ? (gross / paid).toFixed(1) + 'x' : 'n/a';
+  $('#rPay').textContent = plan.price ? (net > 0 ? `about ${Math.max(1, Math.ceil(plan.price / (gross / 30)))} days` : 'not at this bill') : 'free plan';
+  state.est = {spend, savings: Math.max(0, net), touched: state.est ? state.est.touched : false};
+}
+$('#cSpend').oninput = () => { $('#cSpendR').value = $('#cSpend').value; touched(); };
+$('#cSpendR').oninput = () => { $('#cSpend').value = $('#cSpendR').value; touched(); };
+['#mBI', '#mAG', '#mAH', '#mPL', '#cGb', '#cPlat'].forEach(s => $(s).addEventListener('input', touched));
+function touched() { calc(); state.est.touched = true; }
+calc();
+function paintScan() {
+  const dbx = $('#cPlat').value === 'Databricks';
+  $('#scanHow').innerHTML = dbx
+    ? 'On Databricks, the scan runs as a <b>native Databricks app</b> inside your workspace, so your query history never leaves it. <span class="tbc">app in development</span>'
+    : 'The scan reads your recent query history. No hostname change needed to get it.';
+  $('#scanBtn').textContent = dbx ? 'Get the Databricks app' : 'Get my free scan';
+  $('#scanSend').textContent = dbx ? 'Request early access' : 'Request scan';
+}
+$('#cPlat').addEventListener('input', paintScan); paintScan();
+$('#scanPlat').addEventListener('input', () => { $('#cPlat').value = $('#scanPlat').value; paintScan(); touched(); });
+$('#scanBtn').onclick = () => { $('#scanForm').hidden = false; $('#scanBtn').hidden = true; $('#scanPlat').value = $('#cPlat').value; $('#scanEmail').focus(); };
+$('#scanSend').onclick = () => {
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($('#scanEmail').value.trim())) { toast('Add a work email for the scan report.'); return; }
+  const dbx = $('#cPlat').value === 'Databricks';
+  $('#scanForm').innerHTML = dbx
+    ? '<b style="color:#14532d">&#10003; You\'re on the list (simulated).</b> <span class="muted">We\'ll send the Databricks app when it\'s ready. Want results sooner? Start free and see them live.</span>'
+    : '<b style="color:#14532d">&#10003; Scan requested (simulated).</b> <span class="muted">We\'ll send your usage report. Want results sooner? Start free and see them live.</span>';
+};
+$('#copySec').onclick = () => copyText(
+`AiRBRX: security and data answers
+- SOC 2 Type II: expected by the end of 2026.
+- Data: remembered answers are encrypted on AiRBRX storage and never inspected. Large accounts can run AiRBRX in their own AWS environment.
+- Credentials: passed straight through to Snowflake or Databricks; never stored or read.
+- Permissions: a remembered answer is tied to the credential and connection that asked for it.
+- Freshness: customer-controlled, down to the millisecond (time limits, table changes, PII rules, any SQL rule).
+- Writes: always passed through; they clear the answers they affect.
+- Blocking and audit: blocks credential-guessing and runaway agents; every statement is logged.
+- Setup and exit: one hostname change each way.
+- Platforms: Snowflake, Databricks, Postgres.`, $('#copySec'));
+
+/* ===================== 2. connect ===================== */
+const PLAT_HELP = {
+  Databricks: 'In Databricks: SQL Warehouses &rsaquo; your warehouse &rsaquo; Connection details. Copy the <b>JDBC URL</b>, so we get both the hostname and the HTTP path.',
+  Snowflake: 'Paste your <b>&lt;account&gt;.snowflakecomputing.com</b> URL, or the URL in your browser while you are in Snowsight.',
+  Postgres: 'Paste a connection string like <b>postgresql://user@host:5432/database</b>. The password, if any, passes through and isn\'t stored.'
+};
+const PLACE = {Databricks: 'jdbc:databricks://...', Snowflake: 'https://<account>.snowflakecomputing.com', Postgres: 'postgresql://...'};
+function setPlat(p) {
+  state.plat = p;
+  $$('#platTabs button').forEach(x => x.classList.toggle('on', x.dataset.plat === p));
+  $('#platHelp').innerHTML = PLAT_HELP[p]; $('#connIn').placeholder = PLACE[p];
+  $('#sampleToggle').hidden = p !== 'Databricks';
+  if (p !== 'Databricks') { state.sample = false; $('#sampleBox').hidden = true; }
+  resetConn();
+}
+$$('#platTabs button').forEach(b => b.onclick = () => setPlat(b.dataset.plat));
+$('#sampleToggle').onclick = () => {
+  state.sample = !state.sample; $('#sampleBox').hidden = !state.sample;
+  $('#sampleToggle').textContent = state.sample ? 'Use my own data instead' : 'Just exploring? Use the Bakehouse sample';
+  renderCode();
+};
+function resetConn() {
+  $('#connIn').value = ''; $('#pathIn').value = ''; parseInput(); $('#console').hidden = true;
+  state.connected = false; $('#toBI').hidden = true; $('#numWh').innerHTML = '&#8250;'; $('#numWh').classList.remove('ok');
+}
+function parseConn(v) {
+  v = v.trim(); let m;
+  if ((m = v.match(/^jdbc:databricks:\/\/([^:\/;]+)(?::\d+)?[^;]*;.*?httppath=([^;]+)/i))) return {platform: 'Databricks', host: m[1], path: m[2]};
+  if ((m = v.match(/^(?:https?:\/\/)?([a-z0-9-]+\.cloud\.databricks\.com|[a-z0-9.-]+\.azuredatabricks\.net)\/?$/i))) return {platform: 'Databricks', host: m[1], path: null};
+  if ((m = v.match(/app\.snowflake\.com\/([^\/]+)\/([^\/?#]+)/i))) return {platform: 'Snowflake', host: `${m[1]}-${m[2]}.snowflakecomputing.com`, acct: `${m[1]}-${m[2]}`};
+  if ((m = v.match(/^(?:jdbc:snowflake:\/\/|https?:\/\/)?([a-z0-9_.-]+)\.snowflakecomputing\.com/i))) return {platform: 'Snowflake', host: `${m[1]}.snowflakecomputing.com`, acct: m[1]};
+  if ((m = v.match(/^postgres(?:ql)?:\/\/(?:[^@\/]+@)?([^:\/?]+)(?::(\d+))?\/([^?\s]+)/i))) return {platform: 'Postgres', host: m[1], port: m[2] || '5432', db: m[3], creds: /@/.test(v)};
+  return null;
+}
+function parseInput() {
+  const v = $('#connIn').value; const r = v.trim() ? parseConn(v) : null;
+  $('#connWarn').hidden = true; $('#pathField').hidden = true; $('#detected').hidden = true; $('#testBtn').disabled = true;
+  if (!v.trim()) return;
+  if (!r) { $('#connWarn').hidden = false; $('#connWarn').innerHTML = "We couldn't recognize that. Paste the JDBC URL from Databricks, your Snowflake account URL, or a Postgres connection string."; return; }
+  if (r.platform !== state.plat) setTimeoutPlat(r.platform);
+  let path = r.path;
+  if (r.platform === 'Databricks' && !path) {
+    $('#connWarn').hidden = false;
+    $('#connWarn').innerHTML = '<b>Almost there.</b> That is the server hostname. We also need the HTTP path: paste the full JDBC URL instead, or enter the path below.';
+    $('#pathField').hidden = false; path = $('#pathIn').value.trim() || null;
+  }
+  const rows = [['Platform', r.platform], ['Host', `<span class="mono">${esc(r.host)}</span>`]];
+  if (r.platform === 'Databricks') rows.push(['HTTP path', path ? `<span class="mono">${esc(path)}</span>` : '<span class="muted">needed</span>']);
+  if (r.platform === 'Databricks' && state.sample) rows.push(['Data', '<span class="mono">samples.bakehouse</span> (sample, read only)']);
+  if (r.platform === 'Postgres') { rows.push(['Port / database', `<span class="mono">${esc(r.port)} / ${esc(r.db)}</span>`]); if (r.creds) rows.push(['Credentials', 'passed through, not stored']); }
+  rows.push(['Your gateway', `<span class="mono">${state.host}</span>`]);
+  $('#detected').hidden = false;
+  $('#detected').innerHTML = rows.map(([k, v]) => `<span class="k">${k}</span><span>${v}</span>`).join('');
+  const ready = r.platform !== 'Databricks' || !!path;
+  $('#testBtn').disabled = !ready;
+  if (ready) {
+    state.platform = r.platform;
+    if (r.platform === 'Databricks') { state.dbHost = r.host; state.httpPath = path; }
+    if (r.platform === 'Snowflake') { state.sfHost = r.host; state.sfAcct = r.acct; }
+    if (r.platform === 'Postgres') { state.pgHost = r.host; state.pgPort = r.port; state.pgDb = r.db; }
+  }
+}
+/* if someone pastes a Snowflake URL on the Databricks tab, follow them to the right tab without clearing the field */
+function setTimeoutPlat(p) {
+  state.plat = p;
+  $$('#platTabs button').forEach(x => x.classList.toggle('on', x.dataset.plat === p));
+  $('#platHelp').innerHTML = PLAT_HELP[p]; $('#sampleToggle').hidden = p !== 'Databricks';
+  if (p !== 'Databricks') { state.sample = false; $('#sampleBox').hidden = true; }
+}
+$('#connIn').addEventListener('input', parseInput);
+$('#pathIn').addEventListener('input', parseInput);
+$('#exampleBtn').onclick = () => {
+  const v = {Databricks: `jdbc:databricks://${EX.host}:443/default;transportMode=http;ssl=1;AuthMech=3;httpPath=${EX.path};`,
+    Snowflake: 'https://mtnhood-brewing.snowflakecomputing.com', Postgres: 'postgresql://analyst@db.mtnhood.internal:5432/analytics'}[state.plat];
+  $('#connIn').value = v; parseInput();
+};
+$('#testBtn').onclick = () => {
+  const c = $('#console'); c.hidden = false; c.innerHTML = ''; $('#testBtn').disabled = true;
+  const target = {Databricks: state.dbHost, Snowflake: state.sfHost, Postgres: state.pgHost}[state.platform];
+  const lines = [
+    [`Reaching ${state.platform} at ${esc(target)}`, 350],
+    [`Routing through ${state.host}`, 450],
+    [state.sample && state.platform === 'Databricks' ? 'Running SELECT 1 on samples.bakehouse through your gateway' : 'Running SELECT 1 through your gateway', 600],
+    [`<span class="ok">&#10003; Connected. First statement went through AiRBRX in 214 ms.</span>`, 500]];
+  let d = 0;
+  lines.forEach(([t, w]) => { d += w; setTimeout(() => { c.innerHTML += `<div>&gt; ${t}</div>`; }, d); });
+  setTimeout(() => {
+    state.connected = true; $('#testBtn').disabled = false;
+    $('#numWh').innerHTML = '&#10003;'; $('#numWh').classList.add('ok');
+    $('#toBI').hidden = false;
+  }, d + 100);
+};
+setPlat('Databricks');
+
+/* ---------- code generator ---------- */
+const TOOL_NAME = {pbi: 'Power BI', tab: 'Tableau', agent: 'your AI agent', jdbc: 'your JDBC connection', dbt: 'dbt', py: 'your Python code', other: 'your tool'};
+function codeFor(tool) {
+  const gw = state.host, P = state.platform, sample = state.sample && P === 'Databricks';
+  const cat = sample ? 'samples' : 'main', sch = sample ? 'bakehouse' : 'analytics';
+  const q = sample ? 'SELECT product, SUM(totalPrice) AS revenue FROM samples.bakehouse.sales_transactions GROUP BY product' : 'SELECT taproom, SUM(pints) FROM sales GROUP BY taproom';
+  if (P === 'Databricks') {
+    const p = state.httpPath;
+    return {
+      pbi: `# Power BI Desktop
+# Home > Transform data > Data source settings > Change Source
+Server Hostname:  ${gw}
+HTTP Path:        ${p}      # unchanged`,
+      tab: `# Tableau Desktop
+# Data source > connection menu > Edit Connection...
+Server Hostname:  ${gw}
+HTTP Path:        ${p}      # unchanged
+Authentication:   Personal Access Token   # unchanged`,
+      agent: `# Give your agent this tool. Every query it sends goes through AiRBRX.
+import os
+from databricks import sql
+
+def run_sql(query: str):
+    """Query the warehouse. Repeats are answered from memory."""
+    with sql.connect(
+        server_hostname="${gw}",
+        http_path="${p}",
+        access_token=os.environ["DATABRICKS_TOKEN"],
+    ) as conn, conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()`,
+      jdbc: `jdbc:databricks://${gw}:443/default;transportMode=http;ssl=1;AuthMech=3;httpPath=${p};`,
+      dbt: `# ~/.dbt/profiles.yml
+my_project:
+  target: prod
+  outputs:
+    prod:
+      type: databricks
+      host: ${gw}
+      http_path: ${p}
+      catalog: ${cat}
+      schema: ${sch}
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"`,
+      py: `import os
+from databricks import sql
+
+conn = sql.connect(
+    server_hostname="${gw}",
+    http_path="${p}",
+    access_token=os.environ["DATABRICKS_TOKEN"],
+)
+cur = conn.cursor()
+cur.execute("${q}")
+print(cur.fetchall())`,
+      other: `# Anywhere you set a Databricks server hostname, use:
+${gw}
+# HTTP path, token and everything else stay the same.`
+    }[tool];
+  }
+  if (P === 'Snowflake') {
+    const a = state.sfAcct;
+    return {
+      pbi: `# Power BI Desktop
+# Get data > Snowflake (or Data source settings > Change Source)
+Server:     ${gw}
+Warehouse:  YOUR_WAREHOUSE      # unchanged`,
+      tab: `# Tableau Desktop
+# Data source > Edit Connection... (Snowflake)
+Server:          ${gw}
+Role/Warehouse:  unchanged
+Authentication:  unchanged`,
+      agent: `# Give your agent this tool. Every query it sends goes through AiRBRX.
+import os
+import snowflake.connector
+
+def run_sql(query: str):
+    """Query Snowflake. Repeats are answered from memory."""
+    with snowflake.connector.connect(
+        account="${a}",
+        host="${gw}",
+        user=os.environ["SNOWFLAKE_USER"],
+        password=os.environ["SNOWFLAKE_PASSWORD"],
+        warehouse="YOUR_WAREHOUSE",
+    ) as conn:
+        return conn.cursor().execute(query).fetchall()`,
+      jdbc: `jdbc:snowflake://${gw}/?account=${a}&warehouse=YOUR_WAREHOUSE&db=YOUR_DB`,
+      dbt: `# ~/.dbt/profiles.yml
+my_project:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: ${a}
+      host: ${gw}
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      warehouse: YOUR_WAREHOUSE
+      database: YOUR_DB
+      schema: YOUR_SCHEMA`,
+      py: `import os
+import snowflake.connector
+
+conn = snowflake.connector.connect(
+    account="${a}",
+    host="${gw}",
+    user=os.environ["SNOWFLAKE_USER"],
+    password=os.environ["SNOWFLAKE_PASSWORD"],
+)
+print(conn.cursor().execute("${q}").fetchall())`,
+      other: `# Anywhere you set your Snowflake host, use:
+${gw}
+# Account, user, role and warehouse stay the same.`
+    }[tool];
+  }
+  const h = state.pgPort, d = state.pgDb;
+  return {
+    pbi: `# Power BI Desktop
+# Get data > PostgreSQL database (or Change Source)
+Server:    ${gw}:${h}
+Database:  ${d}      # unchanged`,
+    tab: `# Tableau Desktop
+# Data source > Edit Connection... (PostgreSQL)
+Server:    ${gw}
+Port:      ${h}
+Database:  ${d}      # unchanged`,
+    agent: `# Give your agent this tool. Every query it sends goes through AiRBRX.
+import os
+import psycopg
+
+def run_sql(query: str):
+    """Query Postgres. Repeats are answered from memory."""
+    with psycopg.connect(
+        host="${gw}", port=${h}, dbname="${d}",
+        user=os.environ["PGUSER"], password=os.environ["PGPASSWORD"],
+    ) as conn:
+        return conn.execute(query).fetchall()`,
+    jdbc: `jdbc:postgresql://${gw}:${h}/${d}`,
+    dbt: `# ~/.dbt/profiles.yml
+my_project:
+  target: prod
+  outputs:
+    prod:
+      type: postgres
+      host: ${gw}
+      port: ${h}
+      dbname: ${d}
+      schema: public
+      user: "{{ env_var('PGUSER') }}"
+      password: "{{ env_var('PGPASSWORD') }}"`,
+    py: `import os
+import psycopg
+
+with psycopg.connect(host="${gw}", port=${h}, dbname="${d}",
+                     user=os.environ["PGUSER"], password=os.environ["PGPASSWORD"]) as conn:
+    print(conn.execute("${q}").fetchall())`,
+    other: `# Anywhere you set your Postgres host, use:
+${gw}
+# Port ${h}, database ${d} and credentials stay the same.`
+  }[tool];
+}
+function renderCode() {
+  const t = $('#toolSel').value; state.tool = t;
+  const code = codeFor(t), gw = state.host;
+  $('#codeOut').innerHTML = esc(code).split('\n').map(l => l.trim().startsWith('#') ? `<span class="cm">${l}</span>` : l).join('\n').split(esc(gw)).join(`<mark>${esc(gw)}</mark>`);
+  const guided = (t === 'pbi' || t === 'tab');
+  $('#walkBtn').hidden = !guided;
+  $('#codeNote').textContent = `The highlighted value is the only change in ${TOOL_NAME[t]}. Credentials, paths and queries stay the same.` + (guided && state.platform !== 'Databricks' ? ' The guided walkthrough uses a Databricks connection in this concept.' : '');
+  endTour(); $('#stage').innerHTML = ''; $('#tourbar').hidden = true;
+}
+$('#toolSel').onchange = renderCode;
+$('#copyCode').onclick = () => copyText(codeFor($('#toolSel').value), $('#copyCode'));
+$('#madeBtn').onclick = () => done(`${TOOL_NAME[state.tool][0].toUpperCase() + TOOL_NAME[state.tool].slice(1)} now sends its queries through ${state.host}. Repeats come back from memory.`);
+$('#walkBtn').onclick = () => walk(state.tool);
+$('#tourRestart').onclick = () => walk(state.tool);
+function done(txt) {
+  $('#biDone').hidden = false; $('#biDoneTxt').textContent = txt;
+  $('#numTool').innerHTML = '&#10003;'; $('#numTool').classList.add('ok');
+  setTimeout(() => $('#biDone').scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
+}
+const isGw = v => v.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '').toLowerCase() === state.host;
+const tourSrc = () => state.platform === 'Databricks' ? {host: state.dbHost, path: state.httpPath} : {host: EX.host, path: EX.path};
+function walk(t) {
+  endTour(); $('#biDone').hidden = true;
+  if (t === 'pbi') renderPBI(); else if (t === 'tab') renderTableau();
+  setTimeout(() => $('#stage').scrollIntoView({behavior: 'smooth', block: 'start'}), 50);
+}
+
+/* ===================== tour engine ===================== */
+const tour = {steps: [], i: 0, active: false, onDone: null};
+function el(t) { return typeof t === 'function' ? t() : document.querySelector(t); }
+function startTour(steps, onDone) {
+  tour.steps = steps; tour.i = 0; tour.active = true; tour.onDone = onDone;
+  $('#tourLayer').hidden = false; $('#tourbar').hidden = false;
+  setTimeout(enterStep, 400); requestAnimationFrame(loop);
+}
+function endTour() { tour.active = false; $('#tourLayer').hidden = true; }
+function enterStep() {
+  const s = tour.steps[tour.i]; if (!s || !tour.active) return;
+  $('#popS').textContent = `Step ${tour.i + 1} of ${tour.steps.length}`;
+  $('#popT').textContent = s.title; $('#popB').innerHTML = s.body;
+  const A = $('#popA'); A.innerHTML = '';
+  (s.actions || []).forEach(a => {
+    const b = document.createElement('button'); b.className = 'btn sm' + (a === 'auto' ? ' ghost' : '');
+    if (a === 'copy') { b.textContent = 'Copy gateway hostname'; b.onclick = () => copyText(state.host, b); }
+    if (a === 'auto') { b.textContent = 'Do it for me'; b.onclick = () => s.auto && s.auto(); }
+    if (a === 'next') { b.textContent = 'Got it'; b.onclick = advance; }
+    A.appendChild(b);
+  });
+  const sk = document.createElement('button'); sk.className = 'skip'; sk.textContent = 'Hide guide'; sk.onclick = endTour; A.appendChild(sk);
+  const t = el(s.target);
+  if (t) { t.scrollIntoView({block: 'center', inline: 'center', behavior: 'smooth'}); if (s.focus) setTimeout(() => { t.focus(); t.select && t.select(); }, 350); }
+  $('#tourInfo').textContent = 'Guided walkthrough: ' + s.title;
+}
+function advance() {
+  tour.i++;
+  if (tour.i >= tour.steps.length) { endTour(); tour.onDone && tour.onDone(); return; }
+  setTimeout(enterStep, 120);
+}
+function tourEvent(name) { if (!tour.active) return; const s = tour.steps[tour.i]; if (s && s.waitFor === name) advance(); }
+function loop() {
+  if (!tour.active) return;
+  const s = tour.steps[tour.i], t = s && el(s.target);
+  if (t) {
+    const r = t.getBoundingClientRect(), p = 5, spot = $('#spot'), pop = $('#pop');
+    Object.assign(spot.style, {left: r.left - p + 'px', top: r.top - p + 'px', width: r.width + 2 * p + 'px', height: r.height + 2 * p + 'px'});
+    const pw = pop.offsetWidth, ph = pop.offsetHeight, W = innerWidth, H = innerHeight;
+    let top = r.bottom + 16, left = Math.min(Math.max(10, r.left), W - pw - 10);
+    if (s.place === 'right' && r.right + 16 + pw < W - 10) { left = r.right + 16; top = Math.min(Math.max(10, r.top - 24), H - ph - 10); }
+    else if (top + ph > H - 10) top = r.top - ph - 16;
+    if (top < 10) { top = Math.min(Math.max(10, r.top), H - ph - 10); left = r.right + 16 + pw < W ? r.right + 16 : Math.max(10, r.left - pw - 16); }
+    pop.style.top = top + 'px'; pop.style.left = left + 'px';
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ===================== guided walkthroughs ===================== */
+const ICON = {
+  db: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6"/><path d="M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="#217346" stroke-width="1.4"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 9.5h16M4 15h16M10 4v16"/></svg>',
+  get: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><ellipse cx="10" cy="6" rx="6" ry="2.4"/><path d="M4 6v10c0 1.3 2.7 2.4 6 2.4M16 6v4"/><path d="M17 13v8M13.5 17.5L17 21l3.5-3.5" stroke="#252423"/></svg>',
+  sql: '<svg viewBox="0 0 24 24" fill="none" stroke="#a4262c" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M7 10h10M7 14h6"/></svg>',
+  enter: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M9 4v16"/><path d="M13 14h5M15.5 11.5v5" stroke="#107c10"/></svg>',
+  onelake: '<svg viewBox="0 0 24 24" fill="none" stroke="#0f6cbd" stroke-width="1.4"><path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>',
+  recent: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
+  transform: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="3" y="4" width="11" height="13" rx="1"/><path d="M3 8h11M8 4v13"/><path d="M15 14l3 3 3-3M18 8v9" stroke="#0f6cbd"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="#107c10" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>',
+  visual: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M7 17v-5M12 17V8M17 17v-8" stroke="#118dff" stroke-width="2"/></svg>',
+  text: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M8 9h8M12 9v7"/></svg>',
+  measure: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M8 12h8M8 8h3M8 16h5" stroke="#8764b8"/></svg>',
+  publish: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><path d="M12 16V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 14v5h16v-5"/></svg>',
+  paste: '<svg viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="1.4"><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/></svg>'
+};
+const DONE_TXT = t => `Your ${t} report now sends its queries through ${state.host}. Repeats come back from memory.`;
+
+function renderPBI() {
+  const src = tourSrc();
+  $('#stage').innerHTML = `
+  <div class="win" id="pbiWin">
+    <div class="pbi-title"><div class="left"><span>&#128190;</span><span>&#8630;</span><span>&#8631;</span></div>Bakehouse Sales - Power BI Desktop<div class="winbtns"><span>&#8212;</span><span>&#9744;</span><span>&#10005;</span></div></div>
+    <div class="pbi-tabs"><span>File</span><span class="on">Home</span><span>Insert</span><span>Modeling</span><span>View</span><span>Optimize</span><span>Help</span></div>
+    <div class="pbi-ribbon">
+      <div class="rg"><div class="items"><button class="rb">${ICON.paste}Paste</button></div><div class="glabel">Clipboard</div></div>
+      <div class="rg"><div class="items">
+        <button class="rb">${ICON.get}Get data &#709;</button><button class="rb wide">${ICON.grid}Excel workbook</button><button class="rb wide">${ICON.onelake}OneLake catalog &#709;</button>
+        <button class="rb">${ICON.sql}SQL Server</button><button class="rb">${ICON.enter}Enter data</button><button class="rb">${ICON.recent}Recent sources &#709;</button>
+      </div><div class="glabel">Data</div></div>
+      <div class="rg"><div class="items"><button class="rb wide" id="pbiTransform">${ICON.transform}Transform data &#709;</button><button class="rb" id="pbiRefresh">${ICON.refresh}Refresh</button></div><div class="glabel">Queries</div></div>
+      <div class="rg"><div class="items"><button class="rb">${ICON.visual}New visual</button><button class="rb">${ICON.text}Text box</button></div><div class="glabel">Insert</div></div>
+      <div class="rg"><div class="items"><button class="rb">${ICON.measure}New measure</button></div><div class="glabel">Calculations</div></div>
+      <div class="rg" style="border:0"><div class="items"><button class="rb">${ICON.publish}Publish</button></div><div class="glabel">Share</div></div>
+    </div>
+    <div class="pmenu" id="pbiMenu" hidden style="left:0;top:0">
+      <button>Transform data</button><button id="pbiDSSItem">Data source settings</button><button>Edit parameters</button><button>Edit variables</button>
+    </div>
+    <div class="pbi-body">
+      <div class="pbi-rail"><i class="on"></i><i></i><i></i></div>
+      <div class="pbi-canvas"><div class="pbi-page">
+        <div class="visual"><div class="vt">Revenue by product</div><div class="vbars">
+          ${[['Golden Gate Ginger', 92], ['Outback Oatmeal', 74], ['Austin Almond Biscotti', 61], ['Tokyo Tidbits', 48], ['Pearly Pies', 37], ['Orchard Oasis', 29]].map(([n, w]) => `<div class="vbar"><span>${n}</span><i style="width:${w}%"></i></div>`).join('')}
+        </div></div>
+        <div class="visual"><div class="vt">Daily revenue</div><div class="vcols">${[42, 55, 48, 61, 70, 66, 58, 74, 80, 69, 77, 85, 72, 90].map(h => `<i style="height:${h}%"></i>`).join('')}</div></div>
+      </div></div>
+      <div class="pbi-panes"><div class="ph">Data</div>
+        <div class="muted" style="font-size:11.5px;margin-bottom:6px">samples.bakehouse</div>
+        ${['sales_customers', 'sales_franchises', 'sales_suppliers', 'sales_transactions'].map(t => `<div class="tbl">&#9638; ${t}</div>`).join('')}
+      </div>
+    </div>
+    <div class="pbi-status"><span class="pg">Page 1</span><span>Page 1 of 1</span><span id="pbiSrcStatus">Connected: ${esc(src.host)}</span></div>
+
+    <div class="mback" id="dssBack" hidden><div class="pdlg dss">
+      <button class="x" id="dssX">&#10005;</button>
+      <h3>Data source settings</h3>
+      <div style="font-size:13px;color:#605e5c;margin:2px 0 10px">Manage settings for data sources</div>
+      <div class="row" style="gap:18px;font-size:13px"><span class="radio"><i class="on"></i>Data sources in current file</span><span class="radio"><i></i>Global permissions</span></div>
+      <div class="srch">Search data source settings</div>
+      <div class="src"><div class="it">${ICON.db.replace('<svg', '<svg width="16" height="16"')}<span id="dssItem">${esc(src.host)};${esc(src.path)}</span></div></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:6px"><button class="pbtn" id="pbiChange">Change Source...</button><button class="pbtn">Export PIF</button><button class="pbtn">Edit Permissions...</button><button class="pbtn">Clear Permissions &#709;</button></div>
+        <button class="pbtn" id="dssClose">Close</button>
+      </div>
+    </div></div>
+
+    <div class="mback" id="adbBack" hidden><div class="pdlg" style="width:680px;padding:26px 34px 22px">
+      <button class="x" id="adbX">&#10005;</button>
+      <h2>Azure Databricks</h2>
+      <div class="lab">Server Hostname <i class="ii">i</i></div><input type="text" id="adbHost" spellcheck="false" autocomplete="off">
+      <div class="lab">HTTP Path <i class="ii">i</i></div><input type="text" id="adbPath" spellcheck="false" autocomplete="off">
+      <button class="adv" id="adbAdvT">&#9656; Advanced Options (optional)</button>
+      <div id="adbAdv" hidden>
+        <div class="lab">Default catalog (optional) <i class="ii">i</i></div><input type="text" placeholder="Example: abc" value="samples">
+        <div class="lab">Database (optional) <i class="ii">i</i></div><input type="text" placeholder="Example: abc" value="bakehouse">
+      </div>
+      <div class="lab" style="margin-top:16px">Data Connectivity mode <i class="ii">i</i></div>
+      <div class="radio"><i class="on"></i>Import</div><div class="radio"><i></i>DirectQuery</div>
+      <div class="row" style="justify-content:flex-end;gap:10px;margin-top:10px"><button class="pbtn y" id="adbOK">OK</button><button class="pbtn" id="adbCancel">Cancel</button></div>
+    </div></div>
+
+    <div class="mback" id="refBack" hidden><div class="pdlg" style="width:460px;padding:22px 26px">
+      <div style="font-size:18px;font-weight:600">Refresh</div>
+      <div id="refRows" style="font-size:13px;margin-top:10px;line-height:1.9"></div>
+      <div class="prog"><i></i></div>
+    </div></div>
+  </div>`;
+  const W = $('#pbiWin'), menu = $('#pbiMenu');
+  $('#pbiTransform').onclick = () => {
+    const r = $('#pbiTransform').getBoundingClientRect(), w = W.getBoundingClientRect();
+    menu.style.left = (r.left - w.left) + 'px'; menu.style.top = (r.bottom - w.top + 2) + 'px';
+    menu.hidden = !menu.hidden; tourEvent('pbiMenu');
+  };
+  $('#pbiDSSItem').onclick = () => { menu.hidden = true; $('#dssBack').hidden = false; tourEvent('pbiDSS'); };
+  $('#pbiChange').onclick = () => {
+    $('#adbHost').value = src.host; $('#adbPath').value = src.path; $('#adbHost').classList.remove('ok');
+    $('#adbBack').hidden = false; tourEvent('pbiADB');
+  };
+  $('#adbAdvT').onclick = () => { const a = $('#adbAdv'); a.hidden = !a.hidden; $('#adbAdvT').innerHTML = (a.hidden ? '&#9656;' : '&#9662;') + ' Advanced Options (optional)'; };
+  $('#adbHost').addEventListener('input', () => { const ok = isGw($('#adbHost').value); $('#adbHost').classList.toggle('ok', ok); if (ok) tourEvent('hostOK'); });
+  const closeAdb = () => { $('#adbBack').hidden = true; };
+  $('#adbX').onclick = closeAdb; $('#adbCancel').onclick = closeAdb;
+  $('#adbOK').onclick = () => {
+    src.host = $('#adbHost').value.trim(); src.path = $('#adbPath').value.trim();
+    $('#dssItem').textContent = `${src.host};${src.path}`; closeAdb();
+    if (isGw(src.host)) tourEvent('pbiOK'); else toast('Still pointing straight at Databricks. Paste your gateway hostname to route through AiRBRX.');
+  };
+  const closeDss = () => { $('#dssBack').hidden = true; $('#pbiSrcStatus').textContent = 'Connected: ' + src.host; tourEvent('pbiClose'); };
+  $('#dssClose').onclick = closeDss; $('#dssX').onclick = closeDss;
+  $('#pbiRefresh').onclick = () => {
+    const viaGw = isGw(src.host);
+    $('#refBack').hidden = false; const rows = $('#refRows'); rows.innerHTML = '';
+    ['sales_transactions', 'sales_franchises', 'sales_customers', 'sales_suppliers'].forEach((t, i) =>
+      setTimeout(() => rows.innerHTML += `<div>${t} &middot; ${viaGw ? 'via ' + state.host : 'direct to Databricks'}</div>`, 300 + i * 350));
+    setTimeout(() => {
+      $('#refBack').hidden = true;
+      if (viaGw) { tourEvent('pbiRefreshed'); if (!tour.active) done(DONE_TXT('Power BI')); }
+      else toast('Refreshed directly from Databricks. Nothing went through AiRBRX yet.');
+    }, 2000);
+  };
+  const autoHost = () => { const i = $('#adbHost'); i.value = state.host; i.dispatchEvent(new Event('input')); };
+  startTour([
+    {target: '#pbiTransform', title: 'Open your data source', body: 'This report already pulls from Databricks. Click <b>Transform data</b> to find its connection.', waitFor: 'pbiMenu'},
+    {target: '#pbiDSSItem', title: 'Data source settings', body: 'Choose <b>Data source settings</b>.', waitFor: 'pbiDSS'},
+    {target: '#pbiChange', title: 'Change the source', body: 'Your Databricks source is selected. Click <b>Change Source...</b>', waitFor: 'pbiADB'},
+    {target: '#adbHost', title: 'Paste your gateway here', body: `Replace the Databricks hostname with your AiRBRX gateway:<code>${state.host}</code>`, actions: ['copy', 'auto'], auto: autoHost, waitFor: 'hostOK', focus: true, place: 'right'},
+    {place: 'right', target: '#adbPath', title: 'Leave the HTTP Path alone', body: 'Same warehouse, same path. AiRBRX forwards anything it doesn\'t remember.', actions: ['next']},
+    {target: '#adbOK', title: 'Save it', body: 'Click <b>OK</b>. That was the only field that changes.', waitFor: 'pbiOK'},
+    {target: '#dssClose', title: 'Close settings', body: 'Your source now points at the gateway. Click <b>Close</b>.', waitFor: 'pbiClose'},
+    {target: '#pbiRefresh', title: 'Refresh your report', body: 'Click <b>Refresh</b>. Every visual now queries through AiRBRX.', waitFor: 'pbiRefreshed'}
+  ], () => done(DONE_TXT('Power BI')));
+}
+
+function renderTableau() {
+  const src = tourSrc();
+  const rows = [[1000412, 2001, 3000047, '2024-05-14 08:12', 'Golden Gate Ginger'], [1000413, 2017, 3000012, '2024-05-14 08:15', 'Outback Oatmeal'],
+    [1000414, 2054, 3000047, '2024-05-14 08:21', 'Tokyo Tidbits'], [1000415, 2003, 3000031, '2024-05-14 08:22', 'Pearly Pies'],
+    [1000416, 2099, 3000005, '2024-05-14 08:30', 'Austin Almond Biscotti'], [1000417, 2110, 3000012, '2024-05-14 08:41', 'Orchard Oasis'],
+    [1000418, 2001, 3000047, '2024-05-14 08:44', 'Golden Gate Ginger']];
+  $('#stage').innerHTML = `
+  <div class="win tab-win" id="tabWin">
+    <div class="tab-title">Tableau - Bakehouse Sales<div class="winbtns"><span style="height:30px">&#8212;</span><span style="height:30px">&#9744;</span><span style="height:30px">&#10005;</span></div></div>
+    <div class="tab-menus"><span>File</span><span>Data</span><span>Server</span><span>Window</span><span>Help</span></div>
+    <div class="tab-tools"><i></i><i></i><i></i><i style="width:24px"></i><i></i></div>
+    <div class="tab-body">
+      <div class="tab-left">
+        <div class="sec"><span>Connections</span><span style="color:#1f6fb4">Add</span></div>
+        <div class="tab-conn"><div><div class="nm" id="tabConnName">${esc(src.host)}</div><div class="ty">Databricks</div></div><button id="tabConnMenu" aria-label="Connection menu">&#9660;</button>
+          <div class="pmenu" id="tabMenu" hidden style="right:0;top:100%"><button id="tabEdit">Edit Connection...</button><button>Rename</button><button>Remove</button></div></div>
+        <div class="sec" style="margin-top:14px"><span>Catalog</span></div><div class="tb">samples</div>
+        <div class="sec"><span>Database</span></div><div class="tb">bakehouse</div>
+        <div class="sec"><span>Table</span></div>
+        ${['sales_customers', 'sales_franchises', 'sales_suppliers', 'sales_transactions'].map(t => `<div class="tb"><i></i>${t}</div>`).join('')}
+      </div>
+      <div class="tab-right">
+        <div class="tab-top"><span class="src">sales_transactions (bakehouse)</span><span class="row" style="gap:16px"><span>Connection <span class="radio" style="display:inline-flex"><i class="on" style="box-shadow:none;border-color:#1f6fb4"></i>Live</span> <span class="radio" style="display:inline-flex"><i></i>Extract</span></span></span></div>
+        <div class="tab-canvas"><span class="tab-pill">sales_transactions</span></div>
+        <div class="tab-top" style="border-bottom:1px solid #e6e6e6"><span style="font-size:12.5px;color:#666">7 rows shown</span><button class="tab-update" id="tabUpdate">Update Now</button></div>
+        <div class="tab-grid"><table><thead><tr><th>transactionID</th><th>customerID</th><th>franchiseID</th><th>dateTime</th><th>product</th></tr></thead>
+          <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      </div>
+    </div>
+    <div class="tab-bottom"><span class="on">Data Source</span><span>Sheet 1</span><span>&#10010;</span></div>
+
+    <div class="mback" id="tdBack" hidden style="background:rgba(0,0,0,.2)"><div class="tdlg">
+      <div class="hd"><div class="ttl">Databricks</div><button class="x" id="tdX">&#10005;</button>
+        <div class="tt"><span class="on">General</span><span>Initial SQL</span></div></div>
+      <div class="bd">
+        <div class="tf"><label for="tdHost">Server Hostname</label><input id="tdHost" spellcheck="false" autocomplete="off"></div>
+        <div class="tf"><label for="tdPath">HTTP Path</label><input id="tdPath" spellcheck="false" autocomplete="off"></div>
+        <div class="tf"><label>Authentication</label><select><option>Personal Access Token</option><option>OAuth</option></select></div>
+        <div class="tf"><label>Password</label><input type="password" value="dapi-not-a-real-token" autocomplete="off"></div>
+        <div style="overflow:hidden;margin-top:22px"><button class="tsign" id="tdSign">Sign In</button></div>
+      </div>
+    </div></div>
+
+    <div class="mback" id="tuBack" hidden style="background:rgba(0,0,0,.2)"><div class="tdlg" style="padding:22px 24px;width:420px">
+      <div style="font-size:16px;color:#333">Updating data source...</div>
+      <div id="tuRows" style="font-size:13px;margin-top:10px;line-height:1.9;color:#555"></div>
+      <div class="prog"><i style="background:#1f6fb4"></i></div>
+    </div></div>
+  </div>`;
+  $('#tabConnMenu').onclick = () => { $('#tabMenu').hidden = !$('#tabMenu').hidden; tourEvent('tabMenu'); };
+  $('#tabEdit').onclick = () => {
+    $('#tabMenu').hidden = true; $('#tdHost').value = src.host; $('#tdPath').value = src.path; $('#tdHost').classList.remove('ok');
+    $('#tdBack').hidden = false; tourEvent('tabDlg');
+  };
+  $('#tdHost').addEventListener('input', () => { const ok = isGw($('#tdHost').value); $('#tdHost').classList.toggle('ok', ok); if (ok) tourEvent('tabHostOK'); });
+  $('#tdX').onclick = () => { $('#tdBack').hidden = true; };
+  $('#tdSign').onclick = () => {
+    src.host = $('#tdHost').value.trim(); src.path = $('#tdPath').value.trim();
+    $('#tdBack').hidden = true; $('#tabConnName').textContent = src.host;
+    if (isGw(src.host)) tourEvent('tabSigned'); else toast('Still pointing straight at Databricks. Paste your gateway hostname to route through AiRBRX.');
+  };
+  $('#tabUpdate').onclick = () => {
+    const viaGw = isGw(src.host); $('#tuBack').hidden = false; const r = $('#tuRows'); r.innerHTML = '';
+    ['Connecting to ' + (viaGw ? state.host : src.host), 'Running query for sales_transactions', viaGw ? 'Served through AiRBRX' : 'Served directly by Databricks'].forEach((t, i) =>
+      setTimeout(() => r.innerHTML += `<div>${esc(t)}</div>`, 300 + i * 450));
+    setTimeout(() => {
+      $('#tuBack').hidden = true;
+      if (viaGw) { tourEvent('tabUpdated'); if (!tour.active) done(DONE_TXT('Tableau')); }
+      else toast('Updated directly from Databricks. Nothing went through AiRBRX yet.');
+    }, 1900);
+  };
+  const autoHost = () => { const i = $('#tdHost'); i.value = state.host; i.dispatchEvent(new Event('input')); };
+  startTour([
+    {target: '#tabConnMenu', title: 'Open your connection', body: 'This workbook is connected live to Databricks. Open the menu on the connection.', waitFor: 'tabMenu'},
+    {target: '#tabEdit', title: 'Edit the connection', body: 'Choose <b>Edit Connection...</b>', waitFor: 'tabDlg'},
+    {target: '#tdHost', title: 'Paste your gateway here', body: `Replace the Databricks hostname with your AiRBRX gateway:<code>${state.host}</code>`, actions: ['copy', 'auto'], auto: autoHost, waitFor: 'tabHostOK', focus: true, place: 'right'},
+    {place: 'right', target: '#tdPath', title: 'Keep everything else', body: 'Same HTTP path, same token. You still sign in to Databricks exactly as before.', actions: ['next']},
+    {target: '#tdSign', title: 'Sign in', body: 'Click <b>Sign In</b>.', waitFor: 'tabSigned'},
+    {target: '#tabUpdate', title: 'Update your data', body: 'Click <b>Update Now</b>. Your workbook now queries through AiRBRX.', waitFor: 'tabUpdated'}
+  ], () => done(DONE_TXT('Tableau')));
+}
+
+/* ===================== 3. see your savings ===================== */
+let sim = null;
+const MEMS = [
+  ['Sales by product × franchise × day', 'Power BI, copilot'],
+  ['Franchise sales by city × hour', 'monitoring agent'],
+  ['Schema: tables and columns', 'copilot, Claude'],
+  ['Payments by method × day', 'Power BI, dbt'],
+  ['Customer orders by week', 'analysts']];
+const PRINC = [['powerbi-svc', 'Power BI'], ['copilot-agent', 'agent'], ['monitor-agent', 'agent'], ['dbt-prod', 'dbt'], ['analyst-jlee', 'analyst']];
+const STMTS = [
+  ['SHOW TABLES IN samples.bakehouse', 'exact'],
+  ['DESCRIBE TABLE sales_franchises', 'exact'],
+  ['SELECT MAX(dateTime) FROM sales_transactions', 'fwd'],
+  ['SELECT product, SUM(totalPrice) ... GROUP BY product', 'exact'],
+  ['SELECT country, SUM(totalPrice) ... GROUP BY country', 'rollup'],
+  ['select product, round(sum(totalPrice),2) ... where city = \'Portland\'', 'rephrased'],
+  ['SELECT city, AVG(totalPrice) ... GROUP BY city', 'rollup'],
+  ['SELECT * FROM sales_transactions WHERE product = ... LIMIT 20', 'slice'],
+  ['SELECT customerID, COUNT(*) ... HAVING COUNT(*) > 1', 'fwd'],
+  ['SELECT * FROM sales_customers (bad token, attempt 41)', 'blk']];
+const RESULT = {exact: ['hit', 'From memory'], rollup: ['cube', 'Memory: roll-up'], slice: ['cube', 'Memory: slice'], rephrased: ['cube', 'Memory: reworded'], fwd: ['fwd', 'Forwarded'], blk: ['blk', 'Blocked (403)']};
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const PRESETS = {
+  startup:    {label: 'Startup',          S: 320,    spread: .20, base: 40},
+  small:      {label: 'Small',            S: 740,    spread: .12, base: 90},
+  smallmed:   {label: 'Small-medium',     S: 3000,   spread: .20, base: 300},
+  medium:     {label: 'Medium',           S: 6500,   spread: .03, base: 600, script: [.90, 1.10, .70, 1.12]},
+  large:      {label: 'Large',            S: 8000,   spread: .10, base: 900},
+  enterprise: {label: 'Enterprise',       S: 17500,  spread: .12, base: 2000},
+  largeent:   {label: 'Large enterprise', S: 225000, spread: .30, base: 25000}};
+const SPEND_SHARE = .45;
+const DAY_W = (() => { const raw = h => h >= 8 && h < 18 ? 1.25 : h >= 18 && h < 23 ? .575 : .19; const m = [...Array(24).keys()].reduce((a, h) => a + raw(h), 0) / 24; return h => raw(h) / m; })();
+function presetFor(key) {
+  if (key === 'est' && state.est && state.est.touched) return {label: 'Your calculator estimate', S: Math.max(100, state.est.savings), spread: .12, base: Math.max(40, state.est.spend / 40), spend: state.est.spend};
+  return PRESETS[key] || PRESETS.medium;
+}
+function fillDemoSizes() {
+  const sel = $('#demoSize'), est = state.est && state.est.touched;
+  const opts = (est ? [['est', `Your calculator estimate (${usd(state.est.savings)}/mo)`]] : []).concat(Object.entries(PRESETS).map(([k, v]) => [k, v.label]));
+  if (!state.demoSize || (state.demoSize === 'est' && !est)) state.demoSize = est ? 'est' : 'medium';
+  sel.innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === state.demoSize ? 'selected' : ''}>${l}</option>`).join('');
+}
+function hoursInMonth(d) { return (new Date(d.getFullYear(), d.getMonth() + 1, 1) - new Date(d.getFullYear(), d.getMonth(), 1)) / 3600e3; }
+function monthTarget(k) {
+  const P = sim.P, f = P.script && k < P.script.length ? P.script[k] : 1 + P.spread * (Math.random() * 2 - 1);
+  return P.S * f;
+}
+function startValue() {
+  stopValue(); fillDemoSizes();
+  const P = presetFor(state.demoSize);
+  const spend = P.spend || Math.round(P.S / SPEND_SHARE / 100) * 100;
+  const start = new Date(2026, 9, 1, 7);
+  sim = {P, spend, hps: 12, t: start.getTime() - 18 * 3600e3, counting: false, M: P.S, monthIdx: 0, monthW: 0,
+    monthSaved: 0, ytd: 0, total: 0, months: [], stmts: 0, hits: 0, cubeHits: 0, agent: 0, buckets: [], tier: PLANS[0],
+    bill: {exp: 0, act: 0, fee: 0, pts: []},
+    mems: MEMS.map(([name, by], i) => ({name, by, variants: Math.round(rand(6, 14)) - i, hits: Math.max(3, Math.round(rand(40, 90) * P.base / 420) - i * 8)})), timer: null};
+  $('#kProjL').textContent = `Projected per month from usage so far, on about ${usd(spend)}/month of warehouse spend before AiRBRX`;
+  $('#demoHint').textContent = `${P.label}: about ${usd(spend)}/month warehouse bill before AiRBRX.`;
+  $('#audit').innerHTML = ''; $('#nudge').classList.remove('hot'); $('#nudgeBtn').style.visibility = 'hidden';
+  for (let i = 0; i < 18; i++) simHour();
+  sim.counting = true; sim.monthSaved = 0; sim.ytd = 0; sim.total = 0; sim.monthW = 0; sim.M = monthTarget(0);
+  sim.bill = {exp: 0, act: 0, fee: 0, pts: [{h: 6, exp: 0, act: 0, fee: 0}]};
+  while ($('#audit').rows.length < 7) addAudit();
+  renderValue();
+  sim.timer = setInterval(() => { for (let i = 0; i < sim.hps; i++) simHour(); renderValue(); }, 1000);
+}
+function stopValue() { if (sim && sim.timer) clearInterval(sim.timer); }
+function simHour() {
+  const prev = new Date(sim.t); sim.t += 3600e3; const d = new Date(sim.t);
+  if (sim.counting && d.getMonth() !== prev.getMonth()) {
+    sim.months.push({m: prev.getMonth(), y: prev.getFullYear(), v: sim.monthSaved});
+    sim.monthSaved = 0; sim.monthW = 0; sim.monthIdx++; sim.M = monthTarget(sim.monthIdx);
+    sim.bill = {exp: 0, act: 0, fee: 0, pts: [{h: 0, exp: 0, act: 0, fee: 0}]};
+    if (d.getFullYear() !== prev.getFullYear()) sim.ytd = 0;
+    toast(`${MONTH_FULL[prev.getMonth()]} closed: ${usd(sim.months.at(-1).v)} saved. ${MONTH_FULL[d.getMonth()]} starts at $0.`);
+  }
+  const h = d.getHours(), biz = h >= 8 && h < 18 ? rand(.9, 1.6) : h >= 18 && h < 23 ? rand(.35, .8) : rand(.08, .3);
+  const surge = Math.random() < .12 ? rand(1.6, 2.6) : 1;
+  const req = Math.max(1, Math.round(sim.P.base * biz * surge * rand(.7, 1.3)));
+  const agentShare = h >= 8 && h < 18 ? rand(.28, .42) : rand(.5, .75);
+  const exactRate = rand(.32, .5), cubeRate = rand(.14, .22) + agentShare * .25;
+  const exact = Math.round(req * exactRate), cube = Math.min(req - exact, Math.round(req * cubeRate));
+  sim.buckets.push({h, req, exact, cube}); if (sim.buckets.length > 24) sim.buckets.shift();
+  sim.stmts += req; sim.hits += exact + cube; sim.cubeHits += cube; sim.agent += Math.round(req * agentShare);
+  const HM = hoursInMonth(d), w = DAY_W(h), inc = sim.M / HM * w * rand(.85, 1.15);
+  if (sim.counting) {
+    sim.monthSaved += inc; sim.monthW += w; sim.ytd += inc; sim.total += inc;
+    // bill curve: expected spend vs actual spend (expected - saved + AiRBRX meter + plan fee)
+    const expInc = sim.spend / HM * w, meter = inc / 9, planInc = sim.tier.price / HM;
+    sim.bill.exp += expInc; sim.bill.fee += meter + planInc; sim.bill.act += expInc - inc + meter + planInc;
+    sim.bill.pts.push({h: (d.getDate() - 1) * 24 + h, exp: sim.bill.exp, act: sim.bill.act, fee: sim.bill.fee});
+  }
+  sim.mems.forEach((c, i) => { c.hits += Math.round((exact + cube) * rand(.02, .07) / (1 + i * .3)); if (Math.random() < .25 / (1 + i)) c.variants++; });
+  if (Math.random() < .9) addAudit();
+}
+function stamp(t) { const d = new Date(t); return `${MON[d.getMonth()]} ${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(Math.floor(rand(0, 60))).padStart(2, '0')}`; }
+function addAudit() {
+  const [stmt, kind] = pick(STMTS);
+  const p = kind === 'blk' ? 'unknown-token' : pick(PRINC.filter(x => x[1] === 'agent' || Math.random() < .3))[0];
+  const r = RESULT[kind], tb = $('#audit'), tr = document.createElement('tr'), safe = esc(stmt);
+  tr.innerHTML = `<td class="mono">${stamp(sim.t)}</td><td class="mono">${p}</td><td class="mono" title="${safe}">${safe}</td><td><span class="badge ${r[0]}">${r[1]}</span></td>`;
+  tb.prepend(tr); while (tb.rows.length > 7) tb.deleteRow(-1);
+}
+function monthlyAvg() {
+  const n = sim.months.length;
+  if (!n) return {v: sim.monthSaved, note: `So far in your first month (${MONTH_FULL[new Date(sim.t).getMonth()]})`};
+  const v = sim.months.reduce((a, m) => a + m.v, 0) / n;
+  return {v, note: n === 1 ? `Based on ${MONTH_FULL[sim.months[0].m]}, your first full month` : `Average of your ${n} completed months`};
+}
+function projected() {
+  const d = new Date(sim.t), H = hoursInMonth(d), n = sim.months.length, done = sim.months.reduce((a, m) => a + m.v, 0);
+  const run = sim.monthW >= 12 ? sim.monthSaved / sim.monthW * H : null;
+  const frac = Math.min(1, sim.monthW / H);
+  if (run === null) return n ? done / n : null;
+  return (done + run * frac) / (n + frac);
+}
+function billChart() {
+  const d = new Date(sim.t), HM = hoursInMonth(d), B = sim.bill;
+  const W = 640, H = 190, L = 58, R = 12, T = 12, Bm = 26;
+  const top0 = sim.spend * 1.04, raw = top0 / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map(k => k * mag).find(k => k >= raw), top = Math.ceil(top0 / step) * step;
+  const X = h => L + (W - L - R) * h / HM, Y = v => H - Bm - (v / top) * (H - Bm - T);
+  const tick = v => v >= 1000 ? '$' + (v / 1000).toLocaleString('en-US', {maximumFractionDigits: 1}) + 'K' : '$' + v;
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#f0f0f0"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="#a1a1aa">${tick(v)}</text>`;
+  for (let day = 1; day <= HM / 24; day += 7) g += `<text x="${X((day - 1) * 24)}" y="${H - 8}" font-size="11" fill="#a1a1aa" text-anchor="middle">${MON[d.getMonth()]} ${day}</text>`;
+  g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(HM)}" y2="${Y(sim.spend)}" stroke="#d4d4d8" stroke-width="2.5" stroke-dasharray="7 6"/>`;
+  g += `<text x="${X(HM) - 4}" y="${Y(sim.spend) - 8}" font-size="12" font-weight="600" fill="#a1a1aa" text-anchor="end">heading for ${usd(sim.spend)}</text>`;
+  const line = (k, c, wdt) => `<polyline points="${B.pts.map(p => `${X(p.h).toFixed(1)},${Y(p[k]).toFixed(1)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${wdt}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  g += line('act', '#f26b2a', 3.5) + line('fee', '#7c6fd6', 3);
+  const lp = B.pts.at(-1);
+  if (lp) {
+    g += `<circle cx="${X(lp.h)}" cy="${Y(lp.act)}" r="5" fill="#f26b2a"/>`;
+    const lx = Math.min(X(lp.h) + 8, W - 150);
+    g += `<text x="${lx}" y="${Y(lp.act) - 10}" font-size="12.5" font-weight="700" fill="#c2410c">${usd(lp.act)} so far</text>`;
+    g += `<text x="${lx}" y="${Y(lp.fee) - 8}" font-size="11.5" font-weight="600" fill="#5b4fc4">AiRBRX ${usd(lp.fee)}</text>`;
+  }
+  $('#billChart').innerHTML = g;
+}
+function renderValue() {
+  const d = new Date(sim.t);
+  $('#gSaved').textContent = usd(sim.monthSaved);
+  $('#gSavedL').textContent = `Saved in ${MONTH_FULL[d.getMonth()]}`;
+  $('#gSavedS').textContent = sim.bill.exp > 0 ? `Your bill so far is ${usd(sim.bill.act)}, instead of ${usd(sim.bill.exp)}.` : 'Counting from your first answer from memory.';
+  $('#kSaved').textContent = usd(sim.monthSaved);
+  $('#kSavedL').textContent = `Saved this month (${MON[d.getMonth()]})`;
+  const last = sim.months.at(-1);
+  $('#kLast').textContent = last ? usd(last.v) : 'Not yet';
+  $('#kLastL').textContent = last ? `Saved last month (${MON[last.m]})` : 'Saved last month (first month in progress)';
+  $('#kYtd').textContent = usd(sim.ytd);
+  $('#kYtdL').textContent = `Saved year to date (${d.getFullYear()})`;
+  const proj = projected();
+  $('#kProj').textContent = proj === null ? 'Measuring' : usd(proj);
+  $('#kHit').textContent = Math.round(100 * sim.hits / Math.max(1, sim.stmts)) + '%';
+  $('#kCube').textContent = Math.round(100 * sim.cubeHits / Math.max(1, sim.hits)) + '%';
+  $('#kStmt').textContent = sim.stmts.toLocaleString('en-US') + ' statements';
+  $('#kAgent').textContent = Math.round(100 * sim.agent / Math.max(1, sim.stmts)) + '%';
+  $('#clock').textContent = `Demo clock: 1 s = ${sim.hps} h · ${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:00`;
+  billChart();
+  // hourly chart
+  const Bk = sim.buckets, max = Math.max(...Bk.map(b => b.req), 1), W = 640, H = 220, L = 52, Bm = 24, cw = (W - L - 8) / 24;
+  const raw = max / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map(k => k * mag).find(k => k >= raw), top = Math.ceil(max / step) * step;
+  const Y = v => H - Bm - (v / top) * (H - Bm - 10);
+  const tick = v => v >= 1000 ? (v / 1000).toLocaleString('en-US', {maximumFractionDigits: 1}) + 'K' : String(v);
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eee"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10" fill="#a1a1aa">${tick(v)}</text>`;
+  Bk.forEach((b, i) => {
+    const x = L + 4 + i * cw, bw = (cw - 4) / 2, x2 = x + bw + 1;
+    g += `<rect x="${x}" y="${Y(b.req)}" width="${bw}" height="${Y(0) - Y(b.req)}" fill="#fbc8a8" stroke="#f26b2a" stroke-width=".8" rx="1.5"/>`;
+    g += `<rect x="${x2}" y="${Y(b.exact)}" width="${bw}" height="${Y(0) - Y(b.exact)}" fill="#e4e4e7" stroke="#a1a1aa" stroke-width=".8"/>`;
+    g += `<rect x="${x2}" y="${Y(b.exact + b.cube)}" width="${bw}" height="${Y(b.exact) - Y(b.exact + b.cube)}" fill="#7c6fd6" stroke="#5b4fc4" stroke-width=".8"/>`;
+    if (i % 3 === 0) g += `<text x="${x + bw}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#a1a1aa">${String(b.h).padStart(2, '0')}</text>`;
+  });
+  $('#chart').innerHTML = g;
+  const allHits = sim.mems.reduce((a, c) => a + c.hits, 0) || 1;
+  $('#topQ').innerHTML = [...sim.mems].sort((a, b) => b.hits - a.hits).map(c =>
+    `<tr><td><div class="ell" style="font-weight:600">${c.name}</div><div class="ell muted" style="font-size:12px">used by ${c.by}</div></td><td>${c.variants.toLocaleString('en-US')}</td><td>${c.hits.toLocaleString('en-US')}</td><td>${usd(sim.ytd * .6 * c.hits / allHits)}</td></tr>`).join('');
+  // plan card: 2x rule
+  const avg = monthlyAvg(), plan = planFor(avg.v);
+  sim.tier = plan;
+  $('#nudgeT').textContent = `Averaging ${usd(avg.v)} saved per month`;
+  if (plan.price === 0) {
+    $('#nudge').classList.remove('hot'); $('#nudgeBtn').style.visibility = 'hidden';
+    $('#nudgeM').style.width = Math.min(100, 100 * avg.v / PLANS[1].from) + '%';
+    $('#nudgeB').textContent = 'You\'re on Start, which is free.';
+    $('#nudgeS').textContent = `Grow ($499/mo) is recommended once you save ${usd(PLANS[1].from)}/mo, twice its price.`;
+  } else {
+    $('#nudge').classList.add('hot'); $('#nudgeBtn').style.visibility = 'visible';
+    $('#nudgeM').style.width = '100%';
+    $('#nudgeB').textContent = `${plan.name} pays for itself ${(avg.v / plan.price).toFixed(1)}x over.`;
+    $('#nudgeS').textContent = `${avg.note}. Total saved: ${usd(sim.total)}.`;
+  }
+}
+$('#demoSize').onchange = () => { state.demoSize = $('#demoSize').value; startValue(); toast(`Demo restarted as ${presetFor(state.demoSize).label}.`); };
+$('#demoReset').onclick = () => { startValue(); toast('Demo reset to October 1.'); };
+$('#nudgeBtn').onclick = () => {
+  const m = document.createElement('div'); m.className = 'modal';
+  const t = sim.tier.name;
+  m.innerHTML = `<div class="card"><div class="h2">Keep your savings running</div><p class="muted" style="margin:0">Your trial has measured ${usd(sim.total)} in savings so far.</p>
+    <div class="plans">
+      <div class="plan ${t === 'Start' ? 'rec' : ''}"><b>Start</b><div class="p">$0</div><div class="muted" style="font-size:13px">+ 10&cent;/GB from memory</div></div>
+      <div class="plan ${t === 'Grow' ? 'rec' : ''}"><b>Grow</b><div class="p">$499<span class="muted" style="font-size:13px;font-weight:500">/mo</span></div><div class="muted" style="font-size:13px">+ 10&cent;/GB from memory</div></div>
+      <div class="plan ${t === 'Custom' ? 'rec' : ''}"><b>Custom</b><div class="p"><span class="muted" style="font-size:13px;font-weight:500">talk to us</span></div><div class="muted" style="font-size:13px">for larger teams</div></div>
+    </div><div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mClose">Not yet</button><button class="btn" id="mGo">Continue with ${t}</button></div>
+    <p class="muted" style="font-size:12.5px;margin:10px 0 0">Prototype: no payment details are collected. Pricing is a proposal.</p></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#mClose').onclick = () => m.remove();
+  m.querySelector('#mGo').onclick = () => { m.remove(); toast(`Simulated: continuing with ${t}. No payment collected.`); };
+};
+
+/* ===================== start ===================== */
+show('signup');
+</script>
+</body>
+</html>
