@@ -167,7 +167,6 @@ td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numer
             <div class="field"><label for="hAH">Ad hoc</label><input id="hAH" type="number" min="0" max="100" value="20"></div>
             <div class="field"><label for="hPL">Pipelines</label><input id="hPL" type="number" min="0" max="100" value="0"></div>
           </div>
-          <div class="field"><label for="perGb">Warehouse cost per GB answered (USD)</label><input id="perGb" type="number" min="0.11" step="0.1" value="1.00"><div class="hint">Turns savings into GB of cache hits for the 10&cent;/GB meter on Pro and Enterprise. Placeholder until AiRBRX confirms how a GB is counted.</div></div>
           <div class="field"><label for="real">Avoided compute that leaves the bill</label><input id="real" type="number" min="0" max="100" value="80"><div class="hint" id="realHint"></div></div>
         </div>
       </details>
@@ -303,15 +302,14 @@ const PLANS = [
   {name: 'Grow', price: 699, label: 'Grow, $699 per month flat'},
   {name: 'Plus', price: 999, label: 'Plus, $999 per month flat'},
   {name: 'Business', price: 1999, label: 'Business, $1,999 per month flat'},
-  {name: 'Pro', price: 2999, label: 'Pro, $2,999 per month plus usage', metered: true},
-  {name: 'Enterprise', price: 8999, label: 'Enterprise, from $8,999 per month plus usage', metered: true}];
-const GB_RATE = 0.10;
-/* Highest plan whose savings, after its own usage meter, reach twice its base price. */
-function pickPlan(sav, perGb) {
-  const gb = sav / perGb;
+  {name: 'Pro', price: 2999, label: 'Pro, $2,999 per month plus 10% of savings', metered: true},
+  {name: 'Enterprise', price: 8999, label: 'Enterprise, from $8,999 per month plus 10% of savings', metered: true}];
+const USAGE_SHARE = 0.10; // Pro and Enterprise usage: 10% of the warehouse cost that memory avoided
+/* Highest plan whose savings, after its own usage charge, reach twice its base price. */
+function pickPlan(sav) {
   for (const p of [...PLANS].reverse()) {
-    const usage = p.metered ? gb * GB_RATE : 0;
-    if (p.price === 0 || sav - usage >= 2 * p.price) return {...p, gb: p.metered ? gb : 0, usage, total: p.price + usage};
+    const usage = p.metered ? sav * USAGE_SHARE : 0;
+    if (p.price === 0 || sav - usage >= 2 * p.price) return {...p, usage, total: p.price + usage};
   }
 }
 
@@ -368,8 +366,7 @@ function calc() {
   const avoidUSD = bill * share * real;
   const after = bill - avoidUSD;
   const toU = d => d / r.price;
-  const perGb = Math.max(0.11, +$('#perGb').value || 1);
-  const plan = pickPlan(avoidUSD, perGb);
+  const plan = pickPlan(avoidUSD);
   const eq = P.equiv(r);
   Object.assign(state, {P, r, unit, unit1, bill, avoidUSD, after, toU, plan});
 
@@ -389,7 +386,7 @@ function calc() {
   $('#pName').textContent = plan.label;
   $('#pNative').textContent = plan.price
     ? (plan.metered
-      ? `About ${usd(plan.total)} a month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage (${fmt(plan.gb)} GB at 10¢). Equivalent to about ${fmt(toU(plan.total))} ${unit}. Saves ${fmt(avoidUSD / plan.total, 1)}x what you pay AiRBRX.`
+      ? `About ${usd(plan.total)} a month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage (10% of the ${usd(avoidUSD)} memory saved you, about ${fmt(toU(plan.usage))} ${unit}). Equivalent to about ${fmt(toU(plan.total))} ${unit} in all. Saves ${fmt(avoidUSD / plan.total, 1)}x what you pay AiRBRX.`
       : `Equivalent to about ${fmt(toU(plan.price))} ${unit} per month. Saves ${fmt(avoidUSD / plan.price, 1)}x its price.`)
     : 'Free. A paid plan is recommended once it would save twice its price.';
   $('#platNote').textContent = P.note;
@@ -428,7 +425,7 @@ function demo() {
   $('#kAns').textContent = fmt(answers);
   $('#kFee').textContent = usd(plan.total);
   $('#kFeeL').textContent = !plan.price ? 'AiRBRX fee (Start is free)'
-    : plan.metered ? `AiRBRX ${plan.name} per month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage, equivalent to about ${fmt(toU(plan.total))} ${unit}`
+    : plan.metered ? `AiRBRX ${plan.name} per month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage (10% of what memory saved), equivalent to about ${fmt(toU(plan.total))} ${unit}`
     : `AiRBRX ${plan.name} fee per month, equivalent to about ${fmt(toU(plan.price))} ${unit}`;
   $('#chartTitle').textContent = 'Month to date, in dollars';
   drawChart(rows, unit);
