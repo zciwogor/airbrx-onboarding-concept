@@ -408,8 +408,8 @@ function demo() {
   $('#kUSDL').textContent = `Kept after the AiRBRX fee, equivalent to about ${fmt(toU(keptUSD - last.fUSD))} ${unit}`;
   const answers = QUERIES.reduce((a, q) => a + q.runs * q.hit, 0);
   $('#kAns').textContent = fmt(answers);
-  $('#kFee').textContent = usd(last.fUSD);
-  $('#kFeeL').textContent = plan.price ? `AiRBRX fee this month (${plan.name} ${usd(plan.price)}/mo, prorated from day 8${plan.metered ? ', before usage' : ''}), equivalent to about ${fmt(toU(last.fUSD))} ${unit}` : 'AiRBRX fee (Start is free)';
+  $('#kFee').textContent = usd(plan.price);
+  $('#kFeeL').textContent = plan.price ? `AiRBRX ${plan.name} fee per month${plan.metered ? ' before usage' : ''}, equivalent to about ${fmt(toU(plan.price))} ${unit}` : 'AiRBRX fee (Start is free)';
   $('#chartTitle').textContent = 'Month to date, in dollars';
   drawChart(rows, unit);
 
