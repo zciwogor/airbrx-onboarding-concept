@@ -371,6 +371,14 @@ details.assump summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 .democtl select{max-width:100%;min-width:0}
 .democtl .muted{color:#6d28d9;font-size:12.5px}
 details.more{margin-top:6px}
+.bstats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:12px 0 6px}
+.bs{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fafafa;min-width:0}
+.bs .l{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bs .v{font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bs .s{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.bs.o .v{color:var(--orange)}.bs.p .v{color:#5b4fc4}.bs.g .v{color:#a1a1aa}
+.ptog{margin-left:auto;border:0;background:none;color:#a78bfa;opacity:.3;font-size:15px;padding:2px 8px;border-radius:6px;font-family:Georgia,serif}
+.ptog:hover,.ptog:focus-visible{opacity:1;background:#ede9fe}
 details.more>summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none;padding:12px 0;display:flex;gap:8px;align-items:center}
 details.more>summary::-webkit-details-marker{display:none}
 details.more>summary::before{content:"\25B8";color:var(--muted)}
@@ -411,6 +419,7 @@ table.t td.mono{font-size:12px}
   .lead{font-size:16.5px}
   .calc,.grid2,.trust,.glance,.toolpick{grid-template-columns:1fr}
   .kpis{grid-template-columns:repeat(2,1fr)}
+  .bstats{grid-template-columns:repeat(2,1fr)}
   .plans{grid-template-columns:1fr}
   .signup-row{grid-template-columns:1fr}
   .tile{min-width:0;padding:8px 10px}
@@ -560,7 +569,7 @@ table.t td.mono{font-size:12px}
         <div class="wl" id="rWl"></div>
         <div class="kv"><span>AiRBRX meter (10&cent;/GB from memory)</span><b id="rMeter"></b></div>
         <div class="kv"><span>Recommended plan</span><b id="rTier"></b></div>
-        <div class="kv"><span>Net monthly savings</span><b id="rNet"></b></div>
+        <div class="kv"><span>Warehouse spend avoided</span><b id="rNet"></b></div>
         <div class="kv"><span>Return on what you pay AiRBRX</span><b id="rRoi"></b></div>
         <div class="kv"><span>Plan pays for itself in</span><b id="rPay"></b></div>
         <button class="btn" style="width:100%;margin-top:12px" data-go="signupBand">Start free with this estimate</button>
@@ -687,6 +696,14 @@ table.t td.mono{font-size:12px}
   <div class="card billcard">
     <div class="chart-head"><b>Your bill this month</b><span class="muted" id="clock"></span></div>
     <div class="legend" style="margin:6px 0 4px"><span><i style="background:#d4d4d8"></i>Where your bill was heading</span><span><i style="background:var(--orange)"></i>Your bill with AiRBRX</span><span><i style="background:var(--purple)"></i>AiRBRX bill</span></div>
+    <div class="bstats">
+      <div class="bs o"><div class="l">Your bill so far</div><div class="v" id="bsBill">$0</div><div class="s" id="bsBillS">this month</div></div>
+      <div class="bs g"><div class="l">Was heading for</div><div class="v" id="bsHead">$0</div><div class="s">this month, without AiRBRX</div></div>
+      <div class="bs"><div class="l">Warehouse so far</div><div class="v" id="bsWh">$0</div><div class="s">only new questions</div></div>
+      <div class="bs p"><div class="l">AiRBRX so far</div><div class="v" id="bsAir">$0</div><div class="s" id="bsAirS">plan + 10&cent;/GB</div></div>
+      <div class="bs"><div class="l">From memory</div><div class="v" id="bsGb">0 GB</div><div class="s">answered this month</div></div>
+      <div class="bs"><div class="l">Plan</div><div class="v" id="bsPlan">Start</div><div class="s" id="bsPlanS">free</div></div>
+    </div>
     <svg id="billChart" viewBox="0 0 640 190" style="width:100%;height:auto;display:block"></svg>
   </div>
   <div class="democtl">
@@ -694,8 +711,9 @@ table.t td.mono{font-size:12px}
     <label>Company size <select id="demoSize"></select></label>
     <button class="btn ghost sm" id="demoReset">Reset demo</button>
     <span class="muted" id="demoHint"></span>
+    <button class="ptog" id="priceToggle" title="Pricing strategy" aria-label="Switch pricing strategy">&#960;</button>
   </div>
-  <details class="more" id="moreDetails"><summary>Details: monthly totals, traffic, memories and audit log</summary>
+  <details class="more" id="moreDetails" open><summary>Details: monthly totals, traffic, memories and audit log</summary>
     <div class="kgroup">Savings</div>
     <div class="kpis">
       <div class="kpi"><div class="v" id="kSaved">$0</div><div class="l" id="kSavedL">Saved this month</div></div>
@@ -898,11 +916,36 @@ function paintTenant() {
 }
 
 /* ===================== 1c. calculator + security copy ===================== */
-const PLANS = [
-  {name: 'Start', price: 0, from: 0, label: 'Start (free)'},
-  {name: 'Grow', price: 499, from: 998, label: 'Grow: $499/mo'},
-  {name: 'Custom', price: 2999, from: 5998, label: 'Custom: from about $2,999/mo'}];
-function planFor(savings) { return [...PLANS].reverse().find(t => savings >= t.from); }
+/* Two pricing strategies, switched with the hidden button in the demo controls.
+   abram: tiers plus a 10 cent/GB meter on every paid tier.
+   adam:  flat, predictable tiers for low volume; the meter starts at $2,999. Upgrades are automatic. */
+const STRATS = {
+  abram: {label: 'Abram: tiers + 10¢/GB', auto: false, plans: [
+    {name: 'Start', price: 0, metered: false},
+    {name: 'Grow', price: 499, metered: true},
+    {name: 'Expand', price: 2999, metered: true},
+    {name: 'Enterprise', price: 8999, metered: true}]},
+  adam: {label: 'Adam: flat tiers, per-GB from $2,999', auto: true, plans: [
+    {name: 'Start', price: 0, metered: false},
+    {name: 'Lite', price: 299, metered: false},
+    {name: 'Grow', price: 699, metered: false},
+    {name: 'Plus', price: 999, metered: false},
+    {name: 'Pro', price: 1999, metered: false},
+    {name: 'Scale', price: 2999, metered: true},
+    {name: 'Enterprise', price: 8999, metered: true}]}};
+let strat = 'abram';
+const GBR = .10;
+const plans = () => STRATS[strat].plans;
+const planPrice = p => p.price === 0 ? 'free' : `${usd(p.price)}/mo${p.metered ? ' + 10¢/GB' : ' flat'}`;
+const planLabel = p => p.price === 0 ? 'Start (free)' : `${p.name}: ${planPrice(p)}`;
+/* Highest plan whose savings, after its own meter, reach twice its price. */
+function choosePlan(avoided, perGb) {
+  const ps = plans();
+  for (let i = ps.length - 1; i >= 0; i--) {
+    const p = ps[i], meter = p.metered ? avoided * GBR / perGb : 0, sav = avoided - meter;
+    if (i === 0 || sav >= 2 * p.price) return {plan: p, idx: i, meter, sav};
+  }
+}
 const RATES = {bi: .70, ag: .60, ah: .30, pl: 0};
 const WL = [['bi', 'Dashboards'], ['ag', 'AI agents'], ['ah', 'Ad hoc'], ['pl', 'Pipelines']];
 function calc() {
@@ -911,20 +954,21 @@ function calc() {
   const tot = m.bi + m.ag + m.ah + m.pl || 1;
   ['BI', 'AG', 'AH', 'PL'].forEach(k => $('#o' + k).textContent = Math.round(100 * m[k.toLowerCase()] / tot) + '%');
   $('#mixNote').textContent = tot === 100 ? '' : 'Shares are scaled to add up to 100%.';
-  let gross = 0, meter = 0; const per = {};
-  WL.forEach(([k]) => { const cached = spend * m[k] / tot * RATES[k], fee = cached * .10 / gb; per[k] = cached - fee; gross += cached - fee; meter += fee; });
-  const plan = planFor(gross), net = gross - plan.price, total = spend - gross + plan.price, paid = meter + plan.price;
-  $('#rSave').textContent = usd(Math.max(0, gross));
-  $('#rRange').textContent = `Likely range ${usd(gross * .6)} to ${usd(gross * 1.2)} per month, after the 10\u00a2/GB meter`;
-  $('#rWl').innerHTML = WL.map(([k, l]) => `<span>${l}</span>${k === 'pl' ? '<b class="z">writes pass through</b>' : `<b>${usd(per[k])}</b>`}`).join('');
+  let avoided = 0; const cw = {};
+  WL.forEach(([k]) => { cw[k] = spend * m[k] / tot * RATES[k]; avoided += cw[k]; });
+  const c = choosePlan(avoided, gb), plan = c.plan, rate = plan.metered ? GBR / gb : 0;
+  const paid = c.meter + plan.price, net = avoided - paid, total = spend - avoided + paid;
+  $('#rSave').textContent = usd(Math.max(0, net));
+  $('#rRange').textContent = `Likely range ${usd(Math.max(0, net) * .6)} to ${usd(Math.max(0, net) * 1.2)} per month, after everything you pay AiRBRX`;
+  $('#rWl').innerHTML = WL.map(([k, l]) => `<span>${l}</span>${k === 'pl' ? '<b class="z">writes pass through</b>' : `<b>${usd(cw[k] * (1 - rate))}</b>`}`).join('');
   $('#barNow').style.width = '100%'; $('#barNow').textContent = 'Today ' + usd(spend);
   $('#barNew').style.width = Math.max(spend ? total / spend * 100 : 100, 22) + '%'; $('#barNew').textContent = 'With AiRBRX ' + usd(total);
-  $('#rMeter').textContent = usd(meter);
-  $('#rTier').textContent = plan.label;
-  $('#rNet').textContent = usd(net);
-  $('#rRoi').textContent = paid > 0 ? (gross / paid).toFixed(1) + 'x' : 'n/a';
-  $('#rPay').textContent = plan.price ? (net > 0 ? `about ${Math.max(1, Math.ceil(plan.price / (gross / 30)))} days` : 'not at this bill') : 'free plan';
-  state.est = {spend, savings: Math.max(0, net), touched: state.est ? state.est.touched : false};
+  $('#rMeter').textContent = plan.metered ? usd(c.meter) : 'none on this plan';
+  $('#rTier').textContent = planLabel(plan);
+  $('#rNet').textContent = usd(avoided);
+  $('#rRoi').textContent = paid > 0 ? (avoided / paid).toFixed(1) + 'x' : 'free plan';
+  $('#rPay').textContent = plan.price ? (avoided > paid ? `about ${Math.max(1, Math.ceil(paid / (avoided / 30)))} days` : 'not at this bill') : 'free plan';
+  state.est = {spend, savings: Math.max(0, avoided), touched: state.est ? state.est.touched : false};
 }
 $('#cSpend').oninput = () => { $('#cSpendR').value = $('#cSpend').value; touched(); };
 $('#cSpendR').oninput = () => { $('#cSpend').value = $('#cSpendR').value; touched(); };
@@ -1559,27 +1603,36 @@ function startValue() {
   const P = presetFor(state.demoSize);
   const spend = P.spend || Math.round(P.S / SPEND_SHARE / 100) * 100;
   const start = new Date(2026, 9, 1, 7);
-  sim = {P, spend, hps: 12, t: start.getTime() - 18 * 3600e3, counting: false, M: P.S, monthIdx: 0, monthW: 0,
-    monthSaved: 0, ytd: 0, total: 0, months: [], stmts: 0, hits: 0, cubeHits: 0, agent: 0, buckets: [], tier: PLANS[0],
-    bill: {exp: 0, act: 0, fee: 0, pts: []},
+  sim = {P, spend, hps: 12, tick: 0, t: start.getTime() - 18 * 3600e3, counting: false, M: P.S, monthIdx: 0, monthW: 0,
+    monthAvoided: 0, monthSaved: 0, ytd: 0, total: 0, months: [], stmts: 0, hits: 0, cubeHits: 0, agent: 0, buckets: [],
+    cur: choosePlan(0, 1), planIdx: 0,
+    bill: {exp: 0, act: 0, fee: 0, wh: 0, gb: 0, pts: []},
     mems: MEMS.map(([name, by], i) => ({name, by, variants: Math.round(rand(6, 14)) - i, hits: Math.max(3, Math.round(rand(40, 90) * P.base / 420) - i * 8)})), timer: null};
   $('#kProjL').textContent = `Projected per month from usage so far, on about ${usd(spend)}/month of warehouse spend before AiRBRX`;
   $('#demoHint').textContent = `${P.label}: about ${usd(spend)}/month warehouse bill before AiRBRX.`;
   $('#audit').innerHTML = ''; $('#nudge').classList.remove('hot'); $('#nudgeBtn').style.visibility = 'hidden';
   for (let i = 0; i < 18; i++) simHour();
-  sim.counting = true; sim.monthSaved = 0; sim.ytd = 0; sim.total = 0; sim.monthW = 0; sim.M = monthTarget(0);
-  sim.bill = {exp: 0, act: 0, fee: 0, pts: [{h: 6, exp: 0, act: 0, fee: 0}]};
+  sim.counting = true; sim.monthAvoided = 0; sim.monthSaved = 0; sim.ytd = 0; sim.total = 0; sim.monthW = 0; sim.M = monthTarget(0);
+  sim.bill = {exp: 0, act: 0, fee: 0, wh: 0, gb: 0, pts: [{h: 6, exp: 0, act: 0, fee: 0}]};
   while ($('#audit').rows.length < 7) addAudit();
-  renderValue();
-  sim.timer = setInterval(() => { for (let i = 0; i < sim.hps; i++) simHour(); renderValue(); }, 1000);
+  renderGlance(); renderDetails();
+  // one simulated hour per tick, so the bill curve moves smoothly
+  sim.timer = setInterval(() => { simHour(); renderGlance(); if (++sim.tick % sim.hps === 0) renderDetails(); }, 1000 / sim.hps);
 }
 function stopValue() { if (sim && sim.timer) clearInterval(sim.timer); }
+/* Monthly savings basis for choosing a plan: completed months, else this month's run rate. */
+function avoidedBasis() {
+  const n = sim.months.length;
+  if (n) return sim.months.reduce((a, m) => a + m.a, 0) / n;
+  const H = hoursInMonth(new Date(sim.t));
+  return sim.monthW >= 12 ? sim.monthAvoided / sim.monthW * H : 0;
+}
 function simHour() {
   const prev = new Date(sim.t); sim.t += 3600e3; const d = new Date(sim.t);
   if (sim.counting && d.getMonth() !== prev.getMonth()) {
-    sim.months.push({m: prev.getMonth(), y: prev.getFullYear(), v: sim.monthSaved});
-    sim.monthSaved = 0; sim.monthW = 0; sim.monthIdx++; sim.M = monthTarget(sim.monthIdx);
-    sim.bill = {exp: 0, act: 0, fee: 0, pts: [{h: 0, exp: 0, act: 0, fee: 0}]};
+    sim.months.push({m: prev.getMonth(), y: prev.getFullYear(), a: sim.monthAvoided, v: sim.monthSaved});
+    sim.monthAvoided = 0; sim.monthSaved = 0; sim.monthW = 0; sim.monthIdx++; sim.M = monthTarget(sim.monthIdx);
+    sim.bill = {exp: 0, act: 0, fee: 0, wh: 0, gb: 0, pts: [{h: 0, exp: 0, act: 0, fee: 0}]};
     if (d.getFullYear() !== prev.getFullYear()) sim.ytd = 0;
     toast(`${MONTH_FULL[prev.getMonth()]} closed: ${usd(sim.months.at(-1).v)} saved. ${MONTH_FULL[d.getMonth()]} starts at $0.`);
   }
@@ -1591,13 +1644,24 @@ function simHour() {
   const exact = Math.round(req * exactRate), cube = Math.min(req - exact, Math.round(req * cubeRate));
   sim.buckets.push({h, req, exact, cube}); if (sim.buckets.length > 24) sim.buckets.shift();
   sim.stmts += req; sim.hits += exact + cube; sim.cubeHits += cube; sim.agent += Math.round(req * agentShare);
-  const HM = hoursInMonth(d), w = DAY_W(h), inc = sim.M / HM * w * rand(.85, 1.15);
   if (sim.counting) {
-    sim.monthSaved += inc; sim.monthW += w; sim.ytd += inc; sim.total += inc;
-    // bill curve: expected spend vs actual spend (expected - saved + AiRBRX meter + plan fee)
-    const expInc = sim.spend / HM * w, meter = inc / 9, planInc = sim.tier.price / HM;
-    sim.bill.exp += expInc; sim.bill.fee += meter + planInc; sim.bill.act += expInc - inc + meter + planInc;
-    sim.bill.pts.push({h: (d.getDate() - 1) * 24 + h, exp: sim.bill.exp, act: sim.bill.act, fee: sim.bill.fee});
+    // plan: highest tier whose savings reach 2x its price (automatic and upgrade-only in Adam's strategy)
+    let c = choosePlan(avoidedBasis(), 1);
+    if (STRATS[strat].auto && c.idx < sim.planIdx) c = {plan: plans()[sim.planIdx], idx: sim.planIdx};
+    if (c.idx > sim.planIdx && STRATS[strat].auto) toast(`Upgraded automatically to ${c.plan.name} (${planPrice(c.plan)}): savings passed twice its price.`);
+    sim.cur = c; sim.planIdx = c.idx;
+    const HM = hoursInMonth(d), w = DAY_W(h);
+    const avoided = sim.M / HM * w * rand(.9, 1.1);
+    const meter = c.plan.metered ? avoided * GBR : 0, planInc = c.plan.price / HM, fee = meter + planInc;
+    const expInc = sim.spend / HM * w;
+    sim.monthAvoided += avoided; sim.monthW += w;
+    const net = avoided - fee;
+    sim.monthSaved += net; sim.ytd += net; sim.total += net;
+    const B = sim.bill;
+    B.exp += expInc; B.wh += expInc - avoided; B.fee += fee; B.act = B.wh + B.fee; B.gb += avoided;
+    const hh = (d.getDate() - 1) * 24 + h;
+    if (hh % 4 === 0) B.pts.push({h: hh, exp: B.exp, act: B.act, fee: B.fee});
+    B.now = {h: hh, exp: B.exp, act: B.act, fee: B.fee};
   }
   sim.mems.forEach((c, i) => { c.hits += Math.round((exact + cube) * rand(.02, .07) / (1 + i * .3)); if (Math.random() < .25 / (1 + i)) c.variants++; });
   if (Math.random() < .9) addAudit();
@@ -1633,25 +1697,54 @@ function billChart() {
   for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#f0f0f0"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="#a1a1aa">${tick(v)}</text>`;
   for (let day = 1; day <= HM / 24; day += 7) g += `<text x="${X((day - 1) * 24)}" y="${H - 8}" font-size="11" fill="#a1a1aa" text-anchor="middle">${MON[d.getMonth()]} ${day}</text>`;
   g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(HM)}" y2="${Y(sim.spend)}" stroke="#d4d4d8" stroke-width="2.5" stroke-dasharray="7 6"/>`;
-  g += `<text x="${X(HM) - 4}" y="${Y(sim.spend) - 8}" font-size="12" font-weight="600" fill="#a1a1aa" text-anchor="end">heading for ${usd(sim.spend)}</text>`;
-  const line = (k, c, wdt) => `<polyline points="${B.pts.map(p => `${X(p.h).toFixed(1)},${Y(p[k]).toFixed(1)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${wdt}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const pts = B.now ? B.pts.concat([B.now]) : B.pts;
+  const line = (k, c, wdt) => `<polyline points="${pts.map(p => `${X(p.h).toFixed(1)},${Y(p[k]).toFixed(1)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${wdt}" stroke-linejoin="round" stroke-linecap="round"/>`;
   g += line('act', '#f26b2a', 3.5) + line('fee', '#7c6fd6', 3);
-  const lp = B.pts.at(-1);
-  if (lp) {
-    g += `<circle cx="${X(lp.h)}" cy="${Y(lp.act)}" r="5" fill="#f26b2a"/>`;
-    const lx = Math.min(X(lp.h) + 8, W - 150);
-    g += `<text x="${lx}" y="${Y(lp.act) - 10}" font-size="12.5" font-weight="700" fill="#c2410c">${usd(lp.act)} so far</text>`;
-    g += `<text x="${lx}" y="${Y(lp.fee) - 8}" font-size="11.5" font-weight="600" fill="#5b4fc4">AiRBRX ${usd(lp.fee)}</text>`;
-  }
+  const lp = pts.at(-1);
+  if (lp) g += `<circle cx="${X(lp.h)}" cy="${Y(lp.act)}" r="4.5" fill="#f26b2a"/><circle cx="${X(lp.h)}" cy="${Y(lp.fee)}" r="4" fill="#7c6fd6"/>`;
   $('#billChart').innerHTML = g;
 }
-function renderValue() {
-  const d = new Date(sim.t);
+function renderGlance() {
+  const d = new Date(sim.t), B = sim.bill, c = sim.cur, p = c.plan;
   $('#gSaved').textContent = usd(sim.monthSaved);
   $('#gSavedL').textContent = `Saved in ${MONTH_FULL[d.getMonth()]}`;
-  $('#gSavedS').textContent = sim.bill.exp > 0 ? `Your bill so far is ${usd(sim.bill.act)}, instead of ${usd(sim.bill.exp)}.` : 'Counting from your first answer from memory.';
+  $('#gSavedS').textContent = B.exp > 0 ? `After ${usd(B.fee)} paid to AiRBRX this month.` : 'Counting from your first answer from memory.';
+  $('#clock').textContent = `Demo clock: 1 s = ${sim.hps} h · ${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:00`;
+  // stat boxes
+  $('#bsBill').textContent = usd(B.act); $('#bsBillS').textContent = `warehouse + AiRBRX`;
+  $('#bsHead').textContent = usd(sim.spend);
+  $('#bsWh').textContent = usd(B.wh);
+  $('#bsAir').textContent = usd(B.fee);
+  $('#bsAirS').textContent = p.price === 0 ? 'free plan' : p.metered ? `${usd(p.price)} plan + 10¢/GB` : `${usd(p.price)} flat`;
+  $('#bsGb').textContent = Math.round(B.gb).toLocaleString('en-US') + ' GB';
+  $('#bsPlan').textContent = p.name; $('#bsPlanS').textContent = planPrice(p);
+  billChart();
+  // plan card
+  const avg = monthlyAvg(), next = plans()[c.idx + 1], basis = avoidedBasis();
+  $('#nudgeT').textContent = `Averaging ${usd(avg.v)} saved per month`;
+  const toNext = next ? Math.min(100, 100 * basis / (2 * next.price + (next.metered ? basis * GBR : 0))) : 100;
+  if (STRATS[strat].auto) {
+    $('#nudge').classList.toggle('hot', p.price > 0); $('#nudgeBtn').style.visibility = 'hidden';
+    $('#nudgeM').style.width = toNext + '%';
+    $('#nudgeB').textContent = p.price === 0 ? 'You\'re on Start, which is free.' : `You're on ${p.name}: ${planPrice(p)}.`;
+    $('#nudgeS').textContent = next ? `${next.name} (${planPrice(next)}) switches on automatically once you save ${usd(2 * next.price)}/mo, twice its price.` : 'You\'re on the top plan.';
+  } else if (p.price === 0) {
+    $('#nudge').classList.remove('hot'); $('#nudgeBtn').style.visibility = 'hidden';
+    $('#nudgeM').style.width = toNext + '%';
+    $('#nudgeB').textContent = 'You\'re on Start, which is free.';
+    $('#nudgeS').textContent = `${next.name} (${planPrice(next)}) is recommended once you save ${usd(2 * next.price)}/mo, twice its price.`;
+  } else {
+    $('#nudge').classList.add('hot'); $('#nudgeBtn').style.visibility = 'visible';
+    $('#nudgeM').style.width = '100%';
+    const paid = p.price + basis * GBR;
+    $('#nudgeB').textContent = `Recommended: ${p.name}, ${planPrice(p)}. Pays for itself ${(basis / paid).toFixed(1)}x over.`;
+    $('#nudgeS').textContent = `${avg.note}. Total saved: ${usd(sim.total)}.`;
+  }
+}
+function renderDetails() {
+  const d = new Date(sim.t);
   $('#kSaved').textContent = usd(sim.monthSaved);
-  $('#kSavedL').textContent = `Saved this month (${MON[d.getMonth()]})`;
+  $('#kSavedL').textContent = `Saved this month (${MON[d.getMonth()]}), after AiRBRX`;
   const last = sim.months.at(-1);
   $('#kLast').textContent = last ? usd(last.v) : 'Not yet';
   $('#kLastL').textContent = last ? `Saved last month (${MON[last.m]})` : 'Saved last month (first month in progress)';
@@ -1663,9 +1756,6 @@ function renderValue() {
   $('#kCube').textContent = Math.round(100 * sim.cubeHits / Math.max(1, sim.hits)) + '%';
   $('#kStmt').textContent = sim.stmts.toLocaleString('en-US') + ' statements';
   $('#kAgent').textContent = Math.round(100 * sim.agent / Math.max(1, sim.stmts)) + '%';
-  $('#clock').textContent = `Demo clock: 1 s = ${sim.hps} h · ${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:00`;
-  billChart();
-  // hourly chart
   const Bk = sim.buckets, max = Math.max(...Bk.map(b => b.req), 1), W = 640, H = 220, L = 52, Bm = 24, cw = (W - L - 8) / 24;
   const raw = max / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map(k => k * mag).find(k => k >= raw), top = Math.ceil(max / step) * step;
   const Y = v => H - Bm - (v / top) * (H - Bm - 10);
@@ -1682,34 +1772,21 @@ function renderValue() {
   $('#chart').innerHTML = g;
   const allHits = sim.mems.reduce((a, c) => a + c.hits, 0) || 1;
   $('#topQ').innerHTML = [...sim.mems].sort((a, b) => b.hits - a.hits).map(c =>
-    `<tr><td><div class="ell" style="font-weight:600">${c.name}</div><div class="ell muted" style="font-size:12px">used by ${c.by}</div></td><td>${c.variants.toLocaleString('en-US')}</td><td>${c.hits.toLocaleString('en-US')}</td><td>${usd(sim.ytd * .6 * c.hits / allHits)}</td></tr>`).join('');
-  // plan card: 2x rule
-  const avg = monthlyAvg(), plan = planFor(avg.v);
-  sim.tier = plan;
-  $('#nudgeT').textContent = `Averaging ${usd(avg.v)} saved per month`;
-  if (plan.price === 0) {
-    $('#nudge').classList.remove('hot'); $('#nudgeBtn').style.visibility = 'hidden';
-    $('#nudgeM').style.width = Math.min(100, 100 * avg.v / PLANS[1].from) + '%';
-    $('#nudgeB').textContent = 'You\'re on Start, which is free.';
-    $('#nudgeS').textContent = `Grow ($499/mo) is recommended once you save ${usd(PLANS[1].from)}/mo, twice its price.`;
-  } else {
-    $('#nudge').classList.add('hot'); $('#nudgeBtn').style.visibility = 'visible';
-    $('#nudgeM').style.width = '100%';
-    $('#nudgeB').textContent = `${plan.name} pays for itself ${(avg.v / plan.price).toFixed(1)}x over.`;
-    $('#nudgeS').textContent = `${avg.note}. Total saved: ${usd(sim.total)}.`;
-  }
+    `<tr><td><div class="ell" style="font-weight:600">${c.name}</div><div class="ell muted" style="font-size:12px">used by ${c.by}</div></td><td>${c.variants.toLocaleString('en-US')}</td><td>${c.hits.toLocaleString('en-US')}</td><td>${usd(Math.max(0, sim.ytd) * .6 * c.hits / allHits)}</td></tr>`).join('');
 }
 $('#demoSize').onchange = () => { state.demoSize = $('#demoSize').value; startValue(); toast(`Demo restarted as ${presetFor(state.demoSize).label}.`); };
 $('#demoReset').onclick = () => { startValue(); toast('Demo reset to October 1.'); };
+$('#priceToggle').onclick = () => {
+  strat = strat === 'abram' ? 'adam' : 'abram';
+  calc(); startValue();
+  toast(`Pricing: ${STRATS[strat].label}`);
+};
 $('#nudgeBtn').onclick = () => {
   const m = document.createElement('div'); m.className = 'modal';
-  const t = sim.tier.name;
+  const t = sim.cur.plan.name;
   m.innerHTML = `<div class="card"><div class="h2">Keep your savings running</div><p class="muted" style="margin:0">Your trial has measured ${usd(sim.total)} in savings so far.</p>
-    <div class="plans">
-      <div class="plan ${t === 'Start' ? 'rec' : ''}"><b>Start</b><div class="p">$0</div><div class="muted" style="font-size:13px">+ 10&cent;/GB from memory</div></div>
-      <div class="plan ${t === 'Grow' ? 'rec' : ''}"><b>Grow</b><div class="p">$499<span class="muted" style="font-size:13px;font-weight:500">/mo</span></div><div class="muted" style="font-size:13px">+ 10&cent;/GB from memory</div></div>
-      <div class="plan ${t === 'Custom' ? 'rec' : ''}"><b>Custom</b><div class="p"><span class="muted" style="font-size:13px;font-weight:500">talk to us</span></div><div class="muted" style="font-size:13px">for larger teams</div></div>
-    </div><div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mClose">Not yet</button><button class="btn" id="mGo">Continue with ${t}</button></div>
+    <div class="plans">${plans().filter(p => p.price > 0).map(p => `<div class="plan ${p.name === t ? 'rec' : ''}"><b>${p.name}</b><div class="p">${usd(p.price)}<span class="muted" style="font-size:13px;font-weight:500">/mo</span></div><div class="muted" style="font-size:13px">${p.metered ? '+ 10&cent;/GB from memory' : 'flat, no meter'}</div></div>`).join('')}</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mClose">Not yet</button><button class="btn" id="mGo">Continue with ${t}</button></div>
     <p class="muted" style="font-size:12.5px;margin:10px 0 0">Prototype: no payment details are collected. Pricing is a proposal.</p></div>`;
   document.body.appendChild(m);
   m.querySelector('#mClose').onclick = () => m.remove();
