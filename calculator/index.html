@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AiRBRX Bill-Language Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column of three bands. Toggle, calculator (inputs | results), value demo. Same model underneath, platform sets the units. */
+:root {
+  --bg: #f4f6f5;
+  --panel: #ffffff;
+  --ink: #12201f;
+  --muted: #5a6866;
+  --line: #d9e0de;
+  --accent: #0e5a5f;
+  --accent-soft: #e2efee;
+  --good: #1d7a3e;
+  --s-without: #8a9593;
+  --s-with: #2a78d6;
+  --s-fee: #eb6834;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1615; --panel: #172120; --ink: #e6eeec; --muted: #9fb0ad; --line: #2b3a38;
+    --accent: #5fb7b9; --accent-soft: #1d3332; --good: #5cc282;
+    --s-without: #7f8c8a; --s-with: #3987e5; --s-fee: #d95926; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1615; --panel: #172120; --ink: #e6eeec; --muted: #9fb0ad; --line: #2b3a38;
+  --accent: #5fb7b9; --accent-soft: #1d3332; --good: #5cc282;
+  --s-without: #7f8c8a; --s-with: #3987e5; --s-fee: #d95926; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 20px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 19px; font-weight: 600; }
+h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.top { display: grid; gap: 12px; }
+.top p { max-width: 62ch; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; gap: 4px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--ink); font: 600 14px var(--font-body); padding: 9px 16px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
+.seg button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.banner { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding: 4px 10px; background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.calc { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; }
+@media (max-width: 760px) { .calc { grid-template-columns: 1fr; } }
+.inputs, .results { display: grid; gap: 16px; align-content: start; }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 600; font-size: 14px; }
+.field .hint { font-size: 12.5px; color: var(--muted); }
+input[type="number"], select { font: 500 16px var(--font-num); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
+select { font-family: var(--font-body); }
+.money { position: relative; }
+.money span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-family: var(--font-num); }
+.money input { padding-left: 24px; }
+.mix { display: grid; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 500 13px var(--font-body); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.chips button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mixrow { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; font-size: 14px; }
+.mixrow input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.assump { display: grid; gap: 10px; margin-top: 12px; }
+.assump .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hero { display: grid; gap: 4px; }
+.hero .big { font: 600 34px/1.1 var(--font-num); letter-spacing: -0.02em; }
+.hero .sub { font-size: 14px; color: var(--muted); }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 116px 1fr; gap: 10px; align-items: center; font-size: 13px; }
+.track { background: var(--bg); border-radius: 6px; height: 30px; position: relative; overflow: hidden; }
+.fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: #fff; font: 500 12.5px var(--font-num); white-space: nowrap; }
+.fill.without { background: var(--s-without); }
+.fill.with { background: var(--s-with); }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 2px; }
+.stat .v { font: 600 19px var(--font-num); }
+.stat .l { font-size: 12.5px; color: var(--muted); }
+.plan { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.plan .name { font-weight: 700; }
+.note { font-size: 13px; color: var(--muted); }
+.measure { font-size: 13px; display: grid; gap: 6px; }
+.measure code { font-family: var(--font-num); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.demohead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
+.pill { font-size: 12px; font-weight: 600; color: var(--good); border: 1px solid currentColor; border-radius: 999px; padding: 2px 9px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chartbox { position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+svg text { fill: var(--muted); font: 11.5px var(--font-body); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.12); min-width: 170px; display: none; }
+.tip b { display: block; margin-bottom: 4px; }
+.tip .r { display: flex; justify-content: space-between; gap: 12px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 620px; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.src { font-size: 11.5px; font-weight: 600; border-radius: 4px; padding: 1px 6px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+.foot { font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
+@media (max-width: 480px) { .hero .big { font-size: 26px; } .bar { grid-template-columns: 92px 1fr; } }
+@media (prefers-reduced-motion: no-preference) { .fill { transition: width .3s ease; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <h1>AiRBRX value calculator</h1>
+    <p class="muted">One estimate, shown in the units your warehouse already bills you in. Switch platforms: the dollars stay the same, the language changes.</p>
+    <div class="seg" role="group" aria-label="Your platform">
+      <button type="button" data-p="snowflake" aria-pressed="true">Snowflake</button>
+      <button type="button" data-p="databricks" aria-pressed="false">Databricks</button>
+      <button type="button" data-p="postgres" aria-pressed="false">Postgres</button>
+    </div>
+    <p class="banner">Concept by Adam Rogowicz, not the official AiRBRX site. Estimate, not a quote. Memory rates are placeholders until real tenant data is in. <a href="../" style="color:var(--accent)">See the onboarding concept</a></p>
+  </header>
+
+  <section class="panel calc" aria-label="Calculator">
+    <div class="inputs">
+      <h2>Your current bill</h2>
+      <div class="field">
+        <span style="font-weight:600;font-size:14px">Company size</span>
+        <div class="chips" role="group" aria-label="Company size presets" id="chips"></div>
+      </div>
+      <div class="field">
+        <label for="bill">Monthly compute spend</label>
+        <div class="money"><span>$</span><input id="bill" type="number" min="0" step="100" value="14500"></div>
+        <div class="hint" id="billHint"></div>
+      </div>
+      <div class="field">
+        <label for="rate" id="rateLabel">Edition</label>
+        <select id="rate"></select>
+        <div class="hint" id="rateHint"></div>
+      </div>
+      <div class="field">
+        <label>Where that compute goes <span class="muted" style="font-weight:400">(rough split)</span></label>
+        <div class="mix">
+          <div class="mixrow"><span>Dashboards and BI</span><output class="num" id="oBI"></output><input id="mBI" type="range" min="0" max="100" value="40" aria-label="Dashboards and BI share"></div>
+          <div class="mixrow"><span>AI agents and copilots</span><output class="num" id="oAG"></output><input id="mAG" type="range" min="0" max="100" value="30" aria-label="AI agents share"></div>
+          <div class="mixrow"><span>Analyst ad hoc queries</span><output class="num" id="oAH"></output><input id="mAH" type="range" min="0" max="100" value="10" aria-label="Analyst ad hoc share"></div>
+          <div class="mixrow"><span>Pipelines and ETL</span><output class="num" id="oPL"></output><input id="mPL" type="range" min="0" max="100" value="20" aria-label="Pipelines share"></div>
+        </div>
+      </div>
+      <details>
+        <summary>Assumptions</summary>
+        <div class="assump">
+          <p class="note">Share of each workload's compute that memory could answer instead of the warehouse. Placeholders.</p>
+          <div class="grid2">
+            <div class="field"><label for="hBI">Dashboards</label><input id="hBI" type="number" min="0" max="100" value="60"></div>
+            <div class="field"><label for="hAG">AI agents</label><input id="hAG" type="number" min="0" max="100" value="50"></div>
+            <div class="field"><label for="hAH">Ad hoc</label><input id="hAH" type="number" min="0" max="100" value="20"></div>
+            <div class="field"><label for="hPL">Pipelines</label><input id="hPL" type="number" min="0" max="100" value="0"></div>
+          </div>
+          <div class="field"><label for="real">Avoided compute that leaves the bill</label><input id="real" type="number" min="0" max="100" value="80"><div class="hint" id="realHint"></div></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="results" aria-live="polite">
+      <div class="hero">
+        <h3>Compute memory would avoid each month</h3>
+        <div class="big" id="rUnits"></div>
+        <div class="sub" id="rUSD"></div>
+      </div>
+      <div class="bars">
+        <div class="bar"><span>Today</span><div class="track"><div class="fill without" id="barNow"></div></div></div>
+        <div class="bar"><span>With AiRBRX</span><div class="track"><div class="fill with" id="barNew"></div></div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="v" id="sEquiv"></span><span class="l" id="sEquivL"></span></div>
+        <div class="stat"><span class="v" id="sNet"></span><span class="l">Net savings after the AiRBRX fee</span></div>
+      </div>
+      <div class="plan">
+        <span class="note">Recommended plan (pays for itself at least 2x)</span>
+        <span class="name" id="pName"></span>
+        <span id="pNative"></span>
+      </div>
+      <p class="note" id="platNote"></p>
+      <div class="measure">
+        <h3>How AiRBRX measures this on your account</h3>
+        <div id="measureTxt"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="display:grid;gap:16px" aria-label="Value demo">
+    <div class="demohead">
+      <div style="display:grid;gap:2px">
+        <h2>Value dashboard (sample tenant)</h2>
+        <span class="muted" style="font-size:13px">Sandy River Fermentation, sample data scaled to the calculator above. Connected on day 8.</span>
+      </div>
+      <span class="pill">Memory on</span>
+    </div>
+    <div class="kpis">
+      <div class="stat"><span class="v" id="kAvoid"></span><span class="l" id="kAvoidL"></span></div>
+      <div class="stat"><span class="v" id="kUSD"></span><span class="l">Dollars kept this month</span></div>
+      <div class="stat"><span class="v" id="kAns"></span><span class="l">Answers served from memory</span></div>
+      <div class="stat"><span class="v" id="kFee"></span><span class="l" id="kFeeL"></span></div>
+    </div>
+    <div style="display:grid;gap:8px">
+      <h3 id="chartTitle"></h3>
+      <div class="legend">
+        <span><i style="background:var(--s-without)"></i>Bill without AiRBRX (projected)</span>
+        <span><i style="background:var(--s-with)"></i>Your bill with AiRBRX</span>
+        <span><i style="background:var(--s-fee)"></i>AiRBRX fee (flat monthly)</span>
+      </div>
+      <div class="chartbox" id="chartbox">
+        <svg id="chart" width="100%" height="280" role="img" aria-label="Month-to-date bill with and without AiRBRX"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px">
+      <h3>Top repeated questions</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Question</th><th>From</th><th class="n">Asked</th><th class="n">From memory</th><th class="n" id="thCost"></th><th class="n" id="thSaved"></th></tr></thead>
+          <tbody id="qBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="foot">
+      <p id="footSrc"></p>
+      <p>List prices, US East, on-demand. Snowflake and Databricks prices per their published editions and warehouse types; Postgres on Amazon RDS db.r6g instances or Aurora Serverless v2. Your contract rate may differ.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const usd = n => '$' + Math.round(n).toLocaleString('en-US');
+const fmt = (n, d = 0) => n.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const cap = u => u.startsWith('vCPU') ? u : u[0].toUpperCase() + u.slice(1);
+const fmtSmart = n => n >= 100 ? fmt(n) : n >= 10 ? fmt(n, 1) : n >= 1 ? fmt(n, 2) : fmt(n, 3);
+
+/* Platform "languages". Each rate option converts dollars into that platform's billing unit. */
+const PLAT = {
+  snowflake: {
+    rateLabel: 'Snowflake edition',
+    rates: [
+      {id: 'std', label: 'Standard, $2.00 per credit', price: 2.00},
+      {id: 'ent', label: 'Enterprise, $3.00 per credit', price: 3.00, def: true},
+      {id: 'bc', label: 'Business Critical, $4.00/credit', price: 4.00}],
+    unit: 'credits', unit1: 'credit',
+    rateHint: 'Warehouses bill credits per second while running, with a 60-second minimum each time they start.',
+    equiv: () => ({per: 4, label: 'hours of a Medium warehouse (4 credits per hour)'}),
+    perRun: 'Credits per run', perRunMul: 1,
+    realHint: 'Idle time before auto-suspend still bills. Fewer queries let warehouses suspend sooner.',
+    note: 'Snowflake already answers exact repeats free from its 24-hour result cache. This estimate counts only work Snowflake would run again: rephrased questions, slices and roll-ups, and repeats after data changes.',
+    measure: 'Per-query credits from <code>QUERY_ATTRIBUTION_HISTORY</code> (CREDITS_ATTRIBUTED_COMPUTE), credited on every later answer from memory. Checked against the real bill in <code>WAREHOUSE_METERING_HISTORY</code>, before vs. after.',
+    foot: 'Measured in Snowflake credits from your account usage views. Dollars shown at your edition rate.'
+  },
+  databricks: {
+    rateLabel: 'SQL warehouse type',
+    rates: [
+      {id: 'cls', label: 'Classic, $0.22 per DBU + VMs', price: 0.22},
+      {id: 'pro', label: 'Pro, $0.55 per DBU + VMs', price: 0.55},
+      {id: 'srv', label: 'Serverless, $0.70 per DBU', price: 0.70, def: true}],
+    unit: 'DBUs', unit1: 'DBU',
+    rateHint: 'SQL warehouses bill DBUs per hour by warehouse size, metered per second. Premium tier list prices.',
+    equiv: () => ({per: 40, label: 'hours of a Large SQL warehouse (40 DBUs per hour)'}),
+    perRun: 'DBUs per run', perRunMul: 1,
+    realHint: 'Classic and Pro bill for uptime, so savings show when the warehouse scales down or stops. Serverless tracks usage more closely.',
+    note: 'On Classic and Pro, the DBU rate excludes the separate cloud VM bill, which shrinks too when the warehouse runs less. Exact repeats Databricks serves from its own result cache are excluded.',
+    measure: 'Per-query compute from <code>system.query.history</code> (total_task_duration_ms), priced by splitting each hour of <code>system.billing.usage</code> across queries. Checked against DBUs billed before vs. after.',
+    foot: 'Measured in DBUs from your Databricks system tables. Dollars shown at your warehouse type rate.'
+  },
+  postgres: {
+    rateLabel: 'Postgres hosting',
+    rates: [
+      {id: 'rds', label: 'Amazon RDS (db.r6g), $0.11 per vCPU-hour', price: 157 / 1460, def: true, unit: 'vCPU-hours', unit1: 'vCPU-hour'},
+      {id: 'aur', label: 'Aurora Serverless v2, $0.12 per ACU-hour', price: 0.12, unit: 'ACU-hours', unit1: 'ACU-hour'}],
+    rateHint: 'RDS bills instance-hours for the size you provision. Aurora Serverless v2 bills ACU-hours as it scales.',
+    equiv: r => r.id === 'rds'
+      ? {per: 1460, label: 'db.r6g.large instances running all month (2 vCPUs each)'}
+      : {per: 730, label: 'ACUs of capacity running all month'},
+    perRun: 'CPU-seconds per run', perRunMul: 3600,
+    realHint: 'On provisioned RDS, savings arrive when you move to a smaller instance or drop a read replica. Aurora Serverless v2 scales down on its own.',
+    note: 'Postgres has no built-in result cache, so every repeat runs again today. Analytics on Postgres often means read replicas sized for dashboard peaks; memory can take that load.',
+    measure: 'Per-query execution time from <code>pg_stat_statements</code> (total_exec_time), converted to vCPU or ACU time. Checked against instance size and CloudWatch CPU or ACU usage before vs. after.',
+    foot: 'Measured in vCPU-hours (RDS) or ACU-hours (Aurora) from your instance metrics. Dollars shown at on-demand rates.'
+  }
+};
+
+const PLANS = [
+  {name: 'Start', price: 0, label: 'Start (free)'},
+  {name: 'Lite', price: 299, label: 'Lite, $299 per month flat'},
+  {name: 'Grow', price: 699, label: 'Grow, $699 per month flat'},
+  {name: 'Plus', price: 999, label: 'Plus, $999 per month flat'},
+  {name: 'Business', price: 1999, label: 'Business, $1,999 per month flat'},
+  {name: 'Pro', price: 2999, label: 'Pro, $2,999 per month plus usage', metered: true},
+  {name: 'Enterprise', price: 8999, label: 'Enterprise, from $8,999 per month plus usage', metered: true}];
+const pickPlan = sav => [...PLANS].reverse().find(p => p.price === 0 || sav >= 2 * p.price);
+
+const QUERIES = [
+  {q: 'Taproom sales by day and store', src: 'Power BI', runs: 18400, hit: .92, w: .26},
+  {q: 'Agent: which beers are trending in Portland?', src: 'AI agent', runs: 41000, hit: .71, w: .22},
+  {q: 'Distributor inventory roll-up', src: 'Tableau', runs: 6200, hit: .85, w: .18},
+  {q: 'Agent: stock check before reorder', src: 'AI agent', runs: 27500, hit: .64, w: .16},
+  {q: 'Keg returns by route', src: 'Power BI', runs: 3100, hit: .88, w: .10},
+  {q: 'Month-to-date revenue tile', src: 'Tableau', runs: 52000, hit: .97, w: .08}];
+
+const SIZES = [
+  {id: 'startup', label: 'Startup', spend: 700},
+  {id: 'small', label: 'Small', spend: 1600},
+  {id: 'smallmed', label: 'Small-medium', spend: 6500},
+  {id: 'medium', label: 'Medium', spend: 14500},
+  {id: 'large', label: 'Large', spend: 18000},
+  {id: 'enterprise', label: 'Enterprise', spend: 39000},
+  {id: 'largeent', label: 'Large enterprise', spend: 500000}];
+function paintChips() {
+  const bill = +$('#bill').value;
+  const hit = SIZES.find(z => z.spend === bill);
+  $('#chips').innerHTML = SIZES.map(z => `<button type="button" data-z="${z.id}" aria-pressed="${hit && hit.id === z.id}">${z.label}</button>`).join('')
+    + `<button type="button" data-z="custom" aria-pressed="${!hit}" tabindex="-1">Custom</button>`;
+  $('#chips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const z = SIZES.find(x => x.id === b.dataset.z);
+    if (z) { $('#bill').value = z.spend; } else { $('#bill').focus(); return; }
+    calc();
+  }));
+}
+
+let plat = 'snowflake';
+const state = {};
+
+function fillRates() {
+  const P = PLAT[plat];
+  $('#rateLabel').textContent = P.rateLabel;
+  $('#rate').innerHTML = P.rates.map(r => `<option value="${r.id}"${r.def ? ' selected' : ''}>${r.label}</option>`).join('');
+  $('#rateHint').textContent = P.rateHint;
+  $('#realHint').textContent = P.realHint;
+}
+
+function calc() {
+  const P = PLAT[plat];
+  const r = P.rates.find(x => x.id === $('#rate').value) || P.rates[0];
+  const unit = r.unit || P.unit, unit1 = r.unit1 || P.unit1;
+  const bill = Math.max(0, +$('#bill').value || 0);
+  const m = {BI: +$('#mBI').value, AG: +$('#mAG').value, AH: +$('#mAH').value, PL: +$('#mPL').value};
+  const tot = m.BI + m.AG + m.AH + m.PL || 1;
+  for (const k in m) $('#o' + k).textContent = Math.round(100 * m[k] / tot) + '%';
+  const h = k => Math.min(100, Math.max(0, +$('#h' + k).value || 0)) / 100;
+  const share = (m.BI * h('BI') + m.AG * h('AG') + m.AH * h('AH') + m.PL * h('PL')) / tot;
+  const real = Math.min(100, Math.max(0, +$('#real').value || 0)) / 100;
+  const avoidUSD = bill * share * real;
+  const after = bill - avoidUSD;
+  const toU = d => d / r.price;
+  const plan = pickPlan(avoidUSD);
+  const eq = P.equiv(r);
+  Object.assign(state, {P, r, unit, unit1, bill, avoidUSD, after, toU, plan});
+
+  paintChips();
+  $('#billHint').textContent = `About ${fmt(toU(bill))} ${unit} per month at this rate.`;
+  $('#rUnits').textContent = `${fmt(toU(avoidUSD))} ${unit}`;
+  $('#rUSD').textContent = `About ${usd(avoidUSD)} of a ${usd(bill)} monthly bill`;
+  const wNew = bill > 0 ? Math.max(after / bill * 100, 22) : 100;
+  $('#barNow').style.width = '100%';
+  $('#barNow').textContent = `${fmt(toU(bill))} ${unit}`;
+  $('#barNew').style.width = wNew + '%';
+  $('#barNew').textContent = `${fmt(toU(after))} ${unit}`;
+  $('#sEquiv').textContent = fmtSmart(toU(avoidUSD) / eq.per);
+  $('#sEquivL').textContent = eq.label + ' you stop paying for';
+  $('#sNet').textContent = usd(avoidUSD - plan.price);
+  $('#pName').textContent = plan.label;
+  $('#pNative').textContent = plan.price
+    ? `Costs the same as ${fmt(toU(plan.price))} ${unit} per month${plan.metered ? ' before usage' : ''}. Saves ${fmt(avoidUSD / plan.price, 1)}x its price.`
+    : 'Free. A paid plan is recommended once it would save twice its price.';
+  $('#platNote').textContent = P.note;
+  $('#measureTxt').innerHTML = P.measure;
+  demo();
+}
+
+function demo() {
+  const {P, unit, unit1, bill, avoidUSD, toU, plan} = state;
+  const days = 30, start = 8;
+  const wk = d => [0.7, 1.08, 1.12, 1.1, 1.08, 1.04, 0.88][d % 7];
+  const wsum = Array.from({length: days}, (_, i) => wk(i)).reduce((a, b) => a + b, 0);
+  const frac = bill > 0 ? avoidUSD / bill : 0;
+  const daysOn = days - start + 1;
+  let cw = 0, cn = 0, cf = 0;
+  const rows = [];
+  for (let d = 1; d <= days; d++) {
+    const daily = bill * wk(d - 1) / wsum;
+    cn += daily;
+    cw += d >= start ? daily * (1 - frac) : daily;
+    cf = d >= start ? plan.price : null;
+    rows.push({d, without: toU(cn), with: toU(cw), fee: cf === null ? null : toU(cf), wUSD: cn, aUSD: cw, fUSD: cf || 0});
+  }
+  const last = rows[rows.length - 1];
+  const keptUSD = last.wUSD - last.aUSD;
+  $('#kAvoid').textContent = fmt(toU(keptUSD));
+  $('#kAvoidL').textContent = `${cap(unit)} avoided this month`;
+  $('#kUSD').textContent = usd(keptUSD - last.fUSD);
+  const answers = QUERIES.reduce((a, q) => a + q.runs * q.hit, 0);
+  $('#kAns').textContent = fmt(answers);
+  $('#kFee').textContent = plan.price ? `${fmt(toU(plan.price))}` : '0';
+  $('#kFeeL').textContent = plan.price ? `AiRBRX fee in ${unit} (${plan.name}, ${usd(plan.price)})` : 'AiRBRX fee (Start is free)';
+  $('#chartTitle').textContent = `Month to date, in ${unit}`;
+  drawChart(rows, unit);
+
+  $('#thCost').textContent = P.perRun;
+  $('#thSaved').textContent = `${cap(unit)} avoided`;
+  $('#qBody').innerHTML = QUERIES.map(q => {
+    const savedUSD = keptUSD * q.w;
+    const hits = q.runs * q.hit;
+    const perRun = hits ? toU(savedUSD) / hits * P.perRunMul : 0;
+    return `<tr><td>${q.q}</td><td><span class="src">${q.src}</span></td><td class="n">${fmt(q.runs)}</td><td class="n">${fmt(hits)}</td><td class="n">${fmtSmart(perRun)}</td><td class="n">${fmt(toU(savedUSD))}</td></tr>`;
+  }).join('');
+  $('#footSrc').textContent = P.foot;
+}
+
+function drawChart(rows, unit) {
+  const svg = $('#chart'), box = $('#chartbox');
+  const W = box.clientWidth || 600, H = 280, m = {l: 58, r: 14, t: 12, b: 28};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const maxY = Math.max(...rows.map(r => r.without)) || 1;
+  const step = niceStep(maxY / 4);
+  const top = Math.ceil(maxY / step) * step;
+  const x = d => m.l + (d - 1) / (rows.length - 1) * iw;
+  const y = v => m.t + ih - v / top * ih;
+  const css = getComputedStyle(document.documentElement);
+  const c = n => css.getPropertyValue(n).trim();
+  let g = '';
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="${c('--line')}" stroke-width="1"/>`;
+    g += `<text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${fmtAxis(v)}</text>`;
+  }
+  [1, 8, 15, 22, 30].forEach(d => { g += `<text x="${x(d)}" y="${H - 8}" text-anchor="${d === 1 ? 'start' : d === 30 ? 'end' : 'middle'}">Day ${d}</text>`; });
+  g += `<line x1="${x(8)}" x2="${x(8)}" y1="${m.t}" y2="${m.t + ih}" stroke="${c('--muted')}" stroke-dasharray="3 4" stroke-width="1"/>`;
+  g += `<text x="${x(8) + 6}" y="${m.t + 12}">AiRBRX connected</text>`;
+  const path = k => { const pts = rows.filter(r => r[k] !== null); return pts.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r[k]).toFixed(1)}`).join(''); };
+  const fillArea = rows.filter(r => r.d >= 8);
+  const area = fillArea.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r.without).toFixed(1)}`).join('') +
+    [...fillArea].reverse().map(r => `L${x(r.d).toFixed(1)},${y(r.with).toFixed(1)}`).join('') + 'Z';
+  g += `<path d="${area}" fill="${c('--s-with')}" opacity=".10"/>`;
+  g += `<path d="${path('without')}" fill="none" stroke="${c('--s-without')}" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+  g += `<path d="${path('with')}" fill="none" stroke="${c('--s-with')}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  g += `<path d="${path('fee')}" fill="none" stroke="${c('--s-fee')}" stroke-width="2" stroke-linejoin="round"/>`;
+  const L = rows[rows.length - 1];
+  [['with', '--s-with'], ['without', '--s-without'], ['fee', '--s-fee']].forEach(([k, col]) => {
+    g += `<circle cx="${x(L.d)}" cy="${y(L[k])}" r="4" fill="${c(col)}" stroke="${c('--panel')}" stroke-width="2"/>`;
+  });
+  g += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="${c('--muted')}" stroke-width="1" visibility="hidden"/>`;
+  g += `<rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="hit"/>`;
+  svg.innerHTML = g;
+  const tip = $('#tip'), xh = svg.querySelector('#xh');
+  const show = ev => {
+    const rect = svg.getBoundingClientRect();
+    const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+    const d = Math.min(rows.length, Math.max(1, Math.round((px - m.l) / iw * (rows.length - 1)) + 1));
+    const r = rows[d - 1];
+    xh.setAttribute('x1', x(d)); xh.setAttribute('x2', x(d)); xh.setAttribute('visibility', 'visible');
+    tip.innerHTML = `<b>Day ${d}</b>
+      <div class="r"><span>Without AiRBRX</span><span class="num">${fmt(r.without)}</span></div>
+      <div class="r"><span>With AiRBRX</span><span class="num">${fmt(r.with)}</span></div>
+      <div class="r"><span>AiRBRX fee (monthly)</span><span class="num">${r.fee === null ? 'not connected' : fmt(r.fee)}</span></div>
+      <div class="r muted"><span>${unit}, month to date</span><span class="num">${usd(r.wUSD - r.aUSD - r.fUSD)} kept</span></div>`;
+    tip.style.display = 'block';
+    const tx = Math.min(x(d) + 12, W - tip.offsetWidth - 4);
+    tip.style.left = (x(d) + 12 + tip.offsetWidth > W ? x(d) - tip.offsetWidth - 12 : tx) + 'px';
+    tip.style.top = '16px';
+  };
+  const hide = () => { tip.style.display = 'none'; xh.setAttribute('visibility', 'hidden'); };
+  const hit = svg.querySelector('#hit');
+  hit.addEventListener('mousemove', show); hit.addEventListener('touchstart', show, {passive: true});
+  hit.addEventListener('touchmove', show, {passive: true}); hit.addEventListener('mouseleave', hide);
+}
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const n = raw / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+}
+function fmtAxis(v) { return v >= 1e6 ? fmt(v / 1e6, 1) + 'M' : v >= 1e4 ? fmt(v / 1e3) + 'k' : fmt(v); }
+
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  plat = b.dataset.p;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  fillRates(); calc();
+}));
+document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calc));
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(demo, 120); });
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+mq.addEventListener && mq.addEventListener('change', demo);
+new MutationObserver(demo).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+fillRates(); calc();
+</script>
+</body>
+</html>
