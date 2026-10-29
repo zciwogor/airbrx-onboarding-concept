@@ -864,12 +864,12 @@ const drain = (() => {
     const t = performance.now() - t0; if (t > D) return;
     const lane = $('#drLane'), w = lane.clientWidth - 22; if (w <= 0) return;
     const c = document.createElement('span'); c.className = 'coin'; c.textContent = '$'; lane.appendChild(c);
-    const after = t >= BEND, kept = after && Math.random() > AFTER;
+    const after = t + 300 >= BEND, kept = after && Math.random() > .1;   // about 1 in 10 is a new question
     if (kept) {
-      const a = c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w / 2 - 6}px)`}], {duration: 650, easing: 'linear'});
+      const a = c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w / 2 - 6}px)`}], {duration: 300, easing: 'linear'});
       a.onfinish = () => { c.classList.add('kept'); c.textContent = '✓'; c.animate([{transform: `translateX(${w / 2 - 6}px) scale(1)`, opacity: 1}, {transform: `translateX(${w / 2 - 6}px) translateY(-18px) scale(.6)`, opacity: 0}], {duration: 450}).onfinish = () => c.remove(); };
     } else {
-      c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w}px)`}], {duration: 1300, easing: 'linear'}).onfinish = () => { c.remove(); billed++; $('#drQ').textContent = billed.toLocaleString('en-US'); };
+      c.animate([{transform: 'translateX(0)'}, {transform: `translateX(${w}px)`}], {duration: 600, easing: 'linear'}).onfinish = () => { c.remove(); billed++; $('#drQ').textContent = billed.toLocaleString('en-US'); };
     }
   }
   function frame(now) {
