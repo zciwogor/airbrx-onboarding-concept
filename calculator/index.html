@@ -167,6 +167,7 @@ td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numer
             <div class="field"><label for="hAH">Ad hoc</label><input id="hAH" type="number" min="0" max="100" value="20"></div>
             <div class="field"><label for="hPL">Pipelines</label><input id="hPL" type="number" min="0" max="100" value="0"></div>
           </div>
+          <div class="field"><label for="perGb">Warehouse cost per GB answered (USD)</label><input id="perGb" type="number" min="0.11" step="0.1" value="1.00"><div class="hint">Turns savings into GB of cache hits for the 10&cent;/GB meter on Pro and Enterprise. Placeholder until AiRBRX confirms how a GB is counted.</div></div>
           <div class="field"><label for="real">Avoided compute that leaves the bill</label><input id="real" type="number" min="0" max="100" value="80"><div class="hint" id="realHint"></div></div>
         </div>
       </details>
@@ -304,7 +305,15 @@ const PLANS = [
   {name: 'Business', price: 1999, label: 'Business, $1,999 per month flat'},
   {name: 'Pro', price: 2999, label: 'Pro, $2,999 per month plus usage', metered: true},
   {name: 'Enterprise', price: 8999, label: 'Enterprise, from $8,999 per month plus usage', metered: true}];
-const pickPlan = sav => [...PLANS].reverse().find(p => p.price === 0 || sav >= 2 * p.price);
+const GB_RATE = 0.10;
+/* Highest plan whose savings, after its own usage meter, reach twice its base price. */
+function pickPlan(sav, perGb) {
+  const gb = sav / perGb;
+  for (const p of [...PLANS].reverse()) {
+    const usage = p.metered ? gb * GB_RATE : 0;
+    if (p.price === 0 || sav - usage >= 2 * p.price) return {...p, gb: p.metered ? gb : 0, usage, total: p.price + usage};
+  }
+}
 
 const QUERIES = [
   {q: 'Taproom sales by day and store', src: 'Power BI', runs: 18400, hit: .92, w: .26},
@@ -359,7 +368,8 @@ function calc() {
   const avoidUSD = bill * share * real;
   const after = bill - avoidUSD;
   const toU = d => d / r.price;
-  const plan = pickPlan(avoidUSD);
+  const perGb = Math.max(0.11, +$('#perGb').value || 1);
+  const plan = pickPlan(avoidUSD, perGb);
   const eq = P.equiv(r);
   Object.assign(state, {P, r, unit, unit1, bill, avoidUSD, after, toU, plan});
 
@@ -367,17 +377,20 @@ function calc() {
   $('#billHint').textContent = `About ${fmt(toU(bill))} ${unit} per month at this rate.`;
   $('#rUnits').textContent = `${usd(avoidUSD)} a month`;
   $('#rUSD').textContent = `Equivalent to about ${fmt(toU(avoidUSD))} of the ${fmt(toU(bill))} ${unit} on your ${usd(bill)} monthly bill`;
-  const wNew = bill > 0 ? Math.max(after / bill * 100, 22) : 100;
+  const withFee = after + plan.total;
+  const wNew = bill > 0 ? Math.min(100, Math.max(withFee / bill * 100, 22)) : 100;
   $('#barNow').style.width = '100%';
   $('#barNow').textContent = usd(bill);
   $('#barNew').style.width = wNew + '%';
-  $('#barNew').textContent = usd(after);
+  $('#barNew').textContent = usd(withFee) + (plan.total ? ' incl. AiRBRX' : '');
   $('#sEquiv').textContent = fmtSmart(toU(avoidUSD) / eq.per);
   $('#sEquivL').textContent = eq.label + ' you stop paying for';
-  $('#sNet').textContent = usd(avoidUSD - plan.price);
+  $('#sNet').textContent = usd(avoidUSD - plan.total);
   $('#pName').textContent = plan.label;
   $('#pNative').textContent = plan.price
-    ? `Costs the same as ${fmt(toU(plan.price))} ${unit} per month${plan.metered ? ' before usage' : ''}. Saves ${fmt(avoidUSD / plan.price, 1)}x its price.`
+    ? (plan.metered
+      ? `About ${usd(plan.total)} a month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage (${fmt(plan.gb)} GB at 10¢). Equivalent to about ${fmt(toU(plan.total))} ${unit}. Saves ${fmt(avoidUSD / plan.total, 1)}x what you pay AiRBRX.`
+      : `Equivalent to about ${fmt(toU(plan.price))} ${unit} per month. Saves ${fmt(avoidUSD / plan.price, 1)}x its price.`)
     : 'Free. A paid plan is recommended once it would save twice its price.';
   $('#platNote').textContent = P.note;
   $('#measureTxt').innerHTML = P.measure;
@@ -391,13 +404,15 @@ function demo() {
   const wsum = Array.from({length: days}, (_, i) => wk(i)).reduce((a, b) => a + b, 0);
   const frac = bill > 0 ? avoidUSD / bill : 0;
   const daysOn = days - start + 1;
-  let cw = 0, cn = 0, cf = 0;
+  let cw = 0, cn = 0, cf = 0, cu = 0;
   const rows = [];
   for (let d = 1; d <= days; d++) {
     const daily = bill * wk(d - 1) / wsum;
     cn += daily;
     cw += d >= start ? daily * (1 - frac) : daily;
-    cf = d >= start ? plan.price * (d - start + 1) / days : 0; // monthly fee accrues daily; first month prorated from connection
+    // Base fee accrues daily (first month prorated from connection); usage follows each day's savings.
+    cu += d >= start ? plan.usage * wk(d - 1) / wsum : 0;
+    cf = (d >= start ? plan.price * (d - start + 1) / days : 0) + cu;
     rows.push({d, without: cn, with: cw + (cf || 0), wUSD: cn, aUSD: cw, fUSD: cf || 0});
   }
   const last = rows[rows.length - 1];
@@ -411,8 +426,10 @@ function demo() {
   const runsOf = q => Math.round(q.runs * k);
   const answers = QUERIES.reduce((a, q) => a + Math.round(runsOf(q) * q.hit), 0);
   $('#kAns').textContent = fmt(answers);
-  $('#kFee').textContent = usd(plan.price);
-  $('#kFeeL').textContent = plan.price ? `AiRBRX ${plan.name} fee per month${plan.metered ? ' before usage' : ''}, equivalent to about ${fmt(toU(plan.price))} ${unit}` : 'AiRBRX fee (Start is free)';
+  $('#kFee').textContent = usd(plan.total);
+  $('#kFeeL').textContent = !plan.price ? 'AiRBRX fee (Start is free)'
+    : plan.metered ? `AiRBRX ${plan.name} per month: ${usd(plan.price)} plus about ${usd(plan.usage)} usage, equivalent to about ${fmt(toU(plan.total))} ${unit}`
+    : `AiRBRX ${plan.name} fee per month, equivalent to about ${fmt(toU(plan.price))} ${unit}`;
   $('#chartTitle').textContent = 'Month to date, in dollars';
   drawChart(rows, unit);
 
