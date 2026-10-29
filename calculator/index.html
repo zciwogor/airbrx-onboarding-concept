@@ -203,7 +203,7 @@ td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numer
     <div class="demohead">
       <div style="display:grid;gap:2px">
         <h2>Value dashboard (sample tenant)</h2>
-        <span class="muted" style="font-size:13px">Sandy River Fermentation, sample data scaled to the calculator above. Connected on day 8.</span>
+        <span class="muted" style="font-size:13px">Sandy River Fermentation, sample data scaled to the calculator above. A full month with AiRBRX connected.</span>
       </div>
       <span class="pill">Memory on</span>
     </div>
@@ -397,7 +397,7 @@ function calc() {
 
 function demo() {
   const {P, unit, unit1, bill, avoidUSD, toU, plan} = state;
-  const days = 30, start = 8;
+  const days = 30, start = 1;
   const wk = d => [0.7, 1.08, 1.12, 1.1, 1.08, 1.04, 0.88][d % 7];
   const wsum = Array.from({length: days}, (_, i) => wk(i)).reduce((a, b) => a + b, 0);
   const frac = bill > 0 ? avoidUSD / bill : 0;
@@ -461,10 +461,8 @@ function drawChart(rows, unit) {
     g += `<text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${fmtAxis(v)}</text>`;
   }
   [1, 8, 15, 22, 30].forEach(d => { g += `<text x="${x(d)}" y="${H - 8}" text-anchor="${d === 1 ? 'start' : d === 30 ? 'end' : 'middle'}">Day ${d}</text>`; });
-  g += `<line x1="${x(8)}" x2="${x(8)}" y1="${m.t}" y2="${m.t + ih}" stroke="${c('--muted')}" stroke-dasharray="3 4" stroke-width="1"/>`;
-  g += `<text x="${x(8) + 6}" y="${m.t + 12}">AiRBRX connected</text>`;
   const path = k => { const pts = rows.filter(r => r[k] !== null); return pts.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r[k]).toFixed(1)}`).join(''); };
-  const fillArea = rows.filter(r => r.d >= 8);
+  const fillArea = rows;
   const area = fillArea.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r.without).toFixed(1)}`).join('') +
     [...fillArea].reverse().map(r => `L${x(r.d).toFixed(1)},${y(r.with).toFixed(1)}`).join('') + 'Z';
   g += `<path d="${area}" fill="${c('--s-with')}" opacity=".10"/>`;
