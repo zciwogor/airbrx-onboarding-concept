@@ -218,8 +218,9 @@ td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numer
       <h3 id="chartTitle"></h3>
       <div class="legend">
         <span><i style="background:var(--s-without)"></i>Bill without AiRBRX (projected)</span>
-        <span><i style="background:var(--s-with)"></i>With AiRBRX (bill plus the AiRBRX fee)</span>
-        <span><i style="background:var(--s-save)"></i>Saved on the warehouse bill (before the AiRBRX fee)</span>
+        <span><i style="background:var(--s-with)"></i>What you actually pay (warehouse bill plus the AiRBRX fee)</span>
+        <span><i style="background:var(--s-save);height:10px;opacity:.35"></i>Saved by memory (shaded)</span>
+        <span><i style="background:var(--s-save)"></i>Warehouse bill with memory (before the AiRBRX fee)</span>
         <span><i style="background:var(--s-fee)"></i>AiRBRX fee (monthly plan<span id="feeLegUse"></span>)</span>
       </div>
       <div class="chartbox" id="chartbox">
@@ -413,7 +414,7 @@ function demo() {
     // Base fee accrues daily (first month prorated from connection); usage follows each day's savings.
     cu += d >= start ? plan.usage * wk(d - 1) / wsum : 0;
     cf = (d >= start ? plan.price * (d - start + 1) / days : 0) + cu;
-    rows.push({d, without: cn, with: cw + (cf || 0), fee: d >= start ? plan.price + cu : null, save: cn - cw, wUSD: cn, aUSD: cw, fUSD: cf || 0});
+    rows.push({d, without: cn, with: cw + (cf || 0), fee: d >= start ? plan.price + cu : null, save: cn - cw, bill: cw, wUSD: cn, aUSD: cw, fUSD: cf || 0});
   }
   const last = rows[rows.length - 1];
   const keptUSD = last.wUSD - last.aUSD; // warehouse savings before the fee
@@ -466,14 +467,14 @@ function drawChart(rows, unit) {
   const path = k => { const pts = rows.filter(r => r[k] !== null); return pts.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r[k]).toFixed(1)}`).join(''); };
   const fillArea = rows;
   const area = fillArea.map((r, i) => `${i ? 'L' : 'M'}${x(r.d).toFixed(1)},${y(r.without).toFixed(1)}`).join('') +
-    [...fillArea].reverse().map(r => `L${x(r.d).toFixed(1)},${y(r.with).toFixed(1)}`).join('') + 'Z';
-  g += `<path d="${area}" fill="${c('--s-with')}" opacity=".10"/>`;
+    [...fillArea].reverse().map(r => `L${x(r.d).toFixed(1)},${y(r.bill).toFixed(1)}`).join('') + 'Z';
+  g += `<path d="${area}" fill="${c('--s-save')}" opacity=".18"/>`;
   g += `<path d="${path('without')}" fill="none" stroke="${c('--s-without')}" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
-  g += `<path d="${path('save')}" fill="none" stroke="${c('--s-save')}" stroke-width="2" stroke-linejoin="round"/>`;
+  g += `<path d="${path('bill')}" fill="none" stroke="${c('--s-save')}" stroke-width="1.5" stroke-linejoin="round"/>`;
   g += `<path d="${path('fee')}" fill="none" stroke="${c('--s-fee')}" stroke-width="2" stroke-linejoin="round"/>`;
   g += `<path d="${path('with')}" fill="none" stroke="${c('--s-with')}" stroke-width="2.5" stroke-linejoin="round"/>`;
   const L = rows[rows.length - 1];
-  [['with', '--s-with'], ['without', '--s-without'], ['fee', '--s-fee'], ['save', '--s-save']].forEach(([k, col]) => {
+  [['with', '--s-with'], ['without', '--s-without'], ['fee', '--s-fee'], ['bill', '--s-save']].forEach(([k, col]) => {
     g += `<circle cx="${x(L.d)}" cy="${y(L[k])}" r="4" fill="${c(col)}" stroke="${c('--panel')}" stroke-width="2"/>`;
   });
   g += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="${c('--muted')}" stroke-width="1" visibility="hidden"/>`;
@@ -489,8 +490,8 @@ function drawChart(rows, unit) {
     xh.setAttribute('x1', x(d)); xh.setAttribute('x2', x(d)); xh.setAttribute('visibility', 'visible');
     tip.innerHTML = `<b>Day ${d}</b>
       <div class="r"><span>Without AiRBRX</span><span class="num">${usd(r.without)}</span></div>
-      <div class="r"><span>With AiRBRX</span><span class="num">${usd(r.with)}</span></div>
-      <div class="r muted"><span>includes AiRBRX fee to date</span><span class="num">${usd(r.fUSD)}</span></div>
+      <div class="r"><span>Warehouse bill with memory</span><span class="num">${usd(r.bill)}</span></div>
+      <div class="r"><span>With AiRBRX (incl. fee to date)</span><span class="num">${usd(r.with)}</span></div>
       <div class="r"><span>AiRBRX fee (monthly)</span><span class="num">${r.fee === null ? 'not connected' : usd(r.fee)}</span></div>
       <div class="r"><span>Saved before fee</span><span class="num">${usd(r.save)}</span></div>
       <div class="r"><span>Kept so far</span><span class="num">${usd(r.without - r.with)}</span></div>`;
