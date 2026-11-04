@@ -1,0 +1,876 @@
+<h2 id="summary">Summary</h2>
+<p>Every company starts on a free pilot, and small users stay free
+forever under a usage cap. Most customers pay a fixed monthly price,
+$299 to $1,999, stepped by what buyers can count: tenants, warehouses,
+users and features. Pro and Enterprise pay a platform fee plus a meter,
+because large accounts vary too much for one flat price. Savings show on
+the dashboard and statement as proof on every plan.</p>
+<ul>
+<li><p><strong>The pitch:</strong> memory for repeat queries in one
+gateway. A fixed, budgetable price for most teams, and a statement that
+shows what you got back.</p></li>
+<li><p><strong>What sets the plan:</strong> tenants, warehouses, users
+and features. Request counts and GB are fair use only.</p></li>
+<li><p><strong>Savings:</strong> shown in dollars beside the customer's
+own unit (Snowflake credits, Databricks DBUs) as the ROI and renewal
+story.</p></li>
+<li><p><strong>Replaces</strong> the Nov 2 savings-banded draft
+(savings-based pricing can feel like a trap to decision makers) and the
+Oct 29 per-GB draft (GB doesn't map to credits or DBUs).</p></li>
+<li><p><strong>Launch offers:</strong> free pilots, a free-forever tier
+with a cap, and no FDE fees for small customers while Airbrx gets off
+the ground.</p></li>
+</ul>
+<p><span class="badge out">Outstanding</span> Status: internal draft for the founders. Structure is
+medium confidence; the numbers are low confidence until checked against
+tenant data. Not for prospects yet.</p>
+<h2 id="what-changed-nov-3">What changed (Nov 3)</h2>
+<p>Michael and Ben questioned tying price to savings. This version
+follows their direction for most customers: fixed plans stepped by
+countable limits, free forever with a cap, and savings as proof. Pro and
+Enterprise keep a meter, because one flat price would overcharge the
+smaller large accounts or undercharge the biggest.</p>
+<p>Still open: where the free-tier cap sits (Michael's starting point:
+10k to 20k requests/day), and what the Pro and Enterprise meter is based
+on (see Metering for large accounts).</p>
+<h2 id="knowns-and-unknowns">Knowns and unknowns</h2>
+<p>The structure rests on a few confirmed facts; most numbers are still
+assumptions. Each unknown has an owner and a way to settle it before
+pricing goes final (target Nov 20).</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 12%" />
+<col style="width: 35%" />
+<col style="width: 19%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Status</th>
+<th>What we know or assume</th>
+<th>How we resolve it</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Warehouses bill by uptime, not by query</td>
+<td>Known</td>
+<td>Snowflake credits/hour by size; Databricks DBUs/hour. A cached query
+saves money only if the warehouse runs fewer hours or a smaller
+size.</td>
+<td>Vendor docs; built into the model</td>
+<td>Done</td>
+</tr>
+<tr class="even">
+<td>Native caches are free but narrow</td>
+<td>Known</td>
+<td>Snowflake result cache: exact text, 24 h, data unchanged. Databricks
+remote cache needs a running warehouse.</td>
+<td>Vendor docs</td>
+<td>Done</td>
+</tr>
+<tr class="odd">
+<td>Buyers think in credits and DBUs, not GB</td>
+<td>Known</td>
+<td>Per-GB pricing confused buyers in early conversations.</td>
+<td>Customer calls</td>
+<td>Done</td>
+</tr>
+<tr class="even">
+<td>Small teams want a fixed bill</td>
+<td>Known</td>
+<td>Flat plans are easier to budget and approve.</td>
+<td>Founders, Oct 28</td>
+<td>Done</td>
+</tr>
+<tr class="odd">
+<td>Airbrx can measure cost avoided per tenant</td>
+<td>Unknown</td>
+<td>Needed for the statement; also for billing if the large-account
+meter is a savings share.</td>
+<td>Gateway logs duration, warehouse and query ID; attribution
+method</td>
+<td>Michael</td>
+</tr>
+<tr class="even">
+<td>Savings statement accuracy</td>
+<td>Assumed</td>
+<td>Within 10% of the real bill change</td>
+<td>Pause test or control group on early tenants</td>
+<td>Michael</td>
+</tr>
+<tr class="odd">
+<td>Plan limits and prices fit real customers</td>
+<td>Assumed</td>
+<td>Limits and prices from the scenario model, not tenants</td>
+<td>Check against current tenants</td>
+<td>Ben, Adam</td>
+</tr>
+<tr class="even">
+<td>Typical savings share</td>
+<td>Assumed</td>
+<td>20% to 35% of warehouse bill at 1M queries/day; little at 10k unless
+repeats are high</td>
+<td>Pilot savings reports</td>
+<td>Adam</td>
+</tr>
+<tr class="odd">
+<td>Routing savings can be proven</td>
+<td>Unknown</td>
+<td>Open whether routing is offered at all; if it is, harder to prove
+than cache hits</td>
+<td>Compare routed run times to history; wake-ups avoided</td>
+<td>Michael</td>
+</tr>
+<tr class="even">
+<td>FDE hours per small customer</td>
+<td>Unknown</td>
+<td>A few hours of setup</td>
+<td>Track hours on the first 5 FDE-routed customers</td>
+<td>Abram</td>
+</tr>
+<tr class="odd">
+<td>Postgres pricing basis</td>
+<td>Unknown</td>
+<td>No per-query bill; savings are estimates</td>
+<td>Founders decide: estimated compute or requests</td>
+<td>Founders</td>
+</tr>
+<tr class="even">
+<td>Willingness to pay plan prices</td>
+<td>Assumed</td>
+<td>Fixed prices, and a large-account meter below Keebo's ~40%
+share</td>
+<td>First Business and Pro conversations</td>
+<td>Abram</td>
+</tr>
+</tbody>
+</table>
+<h2 id="plan-lineup">Plan lineup</h2>
+<p>Six plans. Free through Business are fixed monthly prices; Pro and
+Enterprise add a meter on top of a platform fee. Tenants, warehouses and
+users set the plan (limits in the next table). Typical savings show each
+plan pays for itself several times over; they are proof, not the
+price.</p>
+<p><span class="badge out">Outstanding</span> Limits and prices still need checking against current
+tenants (Ben's data).</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 18%" />
+<col style="width: 43%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Plan</th>
+<th>Price (USD/mo)</th>
+<th>Built for</th>
+<th>Typical cost avoided (USD/mo, illustrative)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Free tier</td>
+<td>$0, under a usage cap</td>
+<td>Startups, very small teams, one workload</td>
+<td>Under $600</td>
+</tr>
+<tr class="even">
+<td>Team</td>
+<td>$299</td>
+<td>One workload in production</td>
+<td>$600 to $1,500</td>
+</tr>
+<tr class="odd">
+<td>Team Plus</td>
+<td>$699</td>
+<td>A few dashboards or one busy agent</td>
+<td>$1,500 to $4,000</td>
+</tr>
+<tr class="even">
+<td>Business</td>
+<td>$1,999</td>
+<td>Small company, BI plus AI on a few warehouses</td>
+<td>$4,000 to $10,000</td>
+</tr>
+<tr class="odd">
+<td>Pro</td>
+<td>$2,999 platform fee + meter</td>
+<td>Several teams, governance needs, multiple warehouses</td>
+<td>$10,000 to $50,000</td>
+</tr>
+<tr class="even">
+<td>Enterprise</td>
+<td>$8,999 platform fee + meter</td>
+<td>Large accounts, self-hosted, regional, compliance, SLAs</td>
+<td>Over $50,000</td>
+</tr>
+</tbody>
+</table>
+<p>The free-tier cap is a usage limit (cached requests per day or
+tenants). Where it sits is open.</p>
+<h2 id="what-each-plan-includes">What each plan includes</h2>
+<p>Savings alone is a weak reason to move up, so each step adds
+something a buyer can name. Audit logs, custom rules and SSO anchor Pro;
+self-hosting and SLAs anchor Enterprise. Everyone gets the free scan,
+the savings dashboard and the same speed. Items marked † need product
+confirmation.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Free</th>
+<th>Team</th>
+<th>Team Plus</th>
+<th>Business</th>
+<th>Pro</th>
+<th>Enterprise</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tenants (gateway URLs)</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+<td>10</td>
+<td>Custom</td>
+</tr>
+<tr class="even">
+<td>Warehouses connected</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+<td>10</td>
+<td>Unlimited</td>
+</tr>
+<tr class="odd">
+<td>Users †</td>
+<td>2</td>
+<td>3</td>
+<td>10</td>
+<td>25</td>
+<td>Unlimited</td>
+<td>Unlimited</td>
+</tr>
+<tr class="even">
+<td>Freshness rules</td>
+<td>Time limits</td>
+<td>Time limits</td>
+<td>+ Change detection</td>
+<td>+ PII rules</td>
+<td>+ Custom SQL rules</td>
+<td>+ Custom SQL rules</td>
+</tr>
+<tr class="odd">
+<td>Query history</td>
+<td>7 days</td>
+<td>7 days</td>
+<td>30 days</td>
+<td>30 days</td>
+<td>Full audit log, 1 year, export †</td>
+<td>Custom retention, SIEM export †</td>
+</tr>
+<tr class="even">
+<td>Rogue agent and runaway query blocking</td>
+<td>Default</td>
+<td>Default</td>
+<td>Default</td>
+<td>Default</td>
+<td>Custom policies</td>
+<td>Custom policies</td>
+</tr>
+<tr class="odd">
+<td>Overnight cache warm-up</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Iris AI rule suggestions</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Bring-your-own AI (Claude plugin)</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Warehouse routing (assumption, not confirmed)</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Sign-in</td>
+<td>Google, Microsoft</td>
+<td>Google, Microsoft</td>
+<td>Google, Microsoft</td>
+<td>Google, Microsoft</td>
+<td>SSO/SAML †</td>
+<td>SSO/SAML, SCIM †</td>
+</tr>
+<tr class="even">
+<td>Deployment</td>
+<td>Airbrx cloud</td>
+<td>Airbrx cloud</td>
+<td>Airbrx cloud</td>
+<td>Airbrx cloud</td>
+<td>Airbrx cloud</td>
+<td>Cloud or your own AWS</td>
+</tr>
+<tr class="odd">
+<td>Security review</td>
+<td>Security FAQ</td>
+<td>Security FAQ</td>
+<td>Security FAQ</td>
+<td>Security FAQ</td>
+<td>+ SOC 2 under NDA (once issued)</td>
+<td>+ Questionnaire, custom terms</td>
+</tr>
+<tr class="even">
+<td>Support</td>
+<td>Docs</td>
+<td>Email, 2 business days</td>
+<td>Email, 1 business day</td>
+<td>Priority, same day</td>
+<td>Named contact, 4 hours</td>
+<td>Dedicated CSM, uptime SLA †</td>
+</tr>
+<tr class="odd">
+<td>Roadmap early access</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>If Airbrx offers routing (open question), it would be on every paid
+plan and in pilots, because it does the most for small customers, where
+caching alone saves little.</p>
+<h2 id="how-savings-are-measured">How savings are measured</h2>
+<p>On fixed plans, savings are proof, not the bill. Cost avoided is the
+warehouse compute that actually didn't run because of Airbrx, priced
+from the customer's own billing data. If a customer turns Airbrx off for
+a month, their bill should go up by about the amount we claimed.</p>
+<ul>
+<li><p><strong>Caching savings:</strong> queries answered from memory
+that would otherwise have kept the warehouse awake, woken it, or needed
+a bigger size or more clusters.</p></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Routing savings (only if routing is
+offered):</strong> misses sent to a smaller warehouse, plus wake-ups
+avoided on the large one.</p></li>
+<li><p><strong>Only bill-changing savings count.</strong> On uptime
+billing, a cached query on an already-awake warehouse saves little. The
+statement counts compute avoided, not the theoretical price of each
+query.</p></li>
+<li><p><strong>Prices come from the customer's data:</strong> Snowflake
+query attribution and metering history, Databricks billing usage and
+query history. Not list prices or averages.</p></li>
+<li><p><strong>Units:</strong> dollars first, with the customer's unit
+beside it (credits, DBUs; estimated compute hours for
+Postgres).</p></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Proof:</strong> a small random control group
+of repeat queries passes through, or a pause test the customer can
+request. Reconcile monthly; draft accuracy target within 10%.</p></li>
+</ul>
+<p>Every dashboard view and invoice shows the same four lines:</p>
+<table>
+<colgroup>
+<col style="width: 65%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Line</th>
+<th>Example (illustrative)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Owed to Airbrx this month</td>
+<td>$299</td>
+</tr>
+<tr class="even">
+<td>Warehouse cost avoided</td>
+<td>$1,500 (500 DBUs)</td>
+</tr>
+<tr class="odd">
+<td>Your warehouse bill without Airbrx (estimated)</td>
+<td>Actual bill + $1,500</td>
+</tr>
+<tr class="even">
+<td>Net savings after Airbrx</td>
+<td>$1,201</td>
+</tr>
+</tbody>
+</table>
+<p>Plan placement uses tenants, warehouses and users, never savings.</p>
+<h2 id="pilot-free-tier-and-moving-between-plans">Pilot, free tier and
+moving between plans</h2>
+<p>Every company pilots free. The pilot's savings report shows the
+return and recommends a plan by usage.</p>
+<p><strong>Pilot</strong></p>
+<ul>
+<li><p><strong>Who:</strong> every company, any size. No charge, no
+card.</p></li>
+<li><p><strong>Length:</strong> 30 days by default. Extend to 60 or 90
+days to help close, especially smaller companies. Abram or Amit
+approves.</p></li>
+<li><p><strong>Scope:</strong> one workload (a dashboard set, an app or
+an agent), every feature on, hosted by Airbrx. FDE routing setup
+included if routing is offered (assumption). Self-hosted pilots are an
+Enterprise conversation.</p></li>
+<li><p><strong>Start:</strong> the free scan captures a baseline from
+query history.</p></li>
+<li><p><strong>During:</strong> weekly savings snapshot; a check-in at
+the halfway point.</p></li>
+<li><p><strong>End:</strong> a savings report shows what Airbrx saved
+and recommends the plan that fits their tenants, warehouses and users.
+Choosing a plan keeps caching on with no gap.</p></li>
+<li><p><strong>No plan chosen:</strong> the account drops to the free
+tier. Caching stops above the free-tier usage cap; queries keep working
+and go straight to the warehouse.</p></li>
+</ul>
+<p><strong>Free tier</strong></p>
+<ul>
+<li><p>Free forever for startups and very small companies. It earns its
+keep through future growth, word of mouth and real usage data, and the
+cost to Airbrx is trivial.</p></li>
+<li><p>Cap: a cached-request or tenant limit, so customers can "run
+everything you want, and we cap it if it gets out of control." Where the
+cap sits is open.</p></li>
+</ul>
+<p><strong>Moving between plans</strong></p>
+<ul>
+<li><p><strong>Up:</strong> when the customer needs more tenants,
+warehouses, users or a higher-plan feature. We prompt in the app; the
+customer confirms.</p></li>
+<li><p><strong>Down:</strong> at a quarterly review if usage
+drops.</p></li>
+<li><p><strong>No surprise bills:</strong> above a plan's limits,
+additional requests go straight to the warehouse and the price doesn't
+change until the customer confirms a move.</p></li>
+</ul>
+<h2 id="billing-rules">Billing rules</h2>
+<p>Free through Business bill a fixed monthly price with no meter. Pro
+and Enterprise bill a platform fee plus a monthly meter.</p>
+<ul>
+<li><p><strong>Annual billing:</strong> prepay a year and pay for 10
+months. Applies to fixed plans and to the Pro and Enterprise platform
+fee.</p></li>
+<li><p><strong>Meter (Pro, Enterprise):</strong> billed monthly in
+arrears from the statement the customer already sees. The basis is open
+(see Metering for large accounts).</p></li>
+<li><p><strong>Budget controls (Pro, Enterprise):</strong> a monthly cap
+on the share and spend alerts, so metered plans stay
+budgetable.</p></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Enterprise ceiling:</strong> a cap or annual
+true-up on the 20% share is open for negotiation on large
+contracts.</p></li>
+<li><p><strong>No overage on fixed plans:</strong> above plan limits,
+additional requests pass straight through to the warehouse uncached.
+Queries keep working, nothing extra is billed, and the price holds until
+the customer confirms a move up.</p></li>
+<li><p><strong>Never billed:</strong> cache misses, writes, pass-through
+traffic, request counts or GB. Those are fair use only.</p></li>
+<li><p><strong>Pricing page:</strong> shows the free pilot, the plan
+ladder (fixed prices for most teams, savings shown as proof) and "Talk
+to us."</p></li>
+</ul>
+<h2 id="services-fde-and-the-free-year">Services, FDE and the free
+year</h2>
+<p>FDE and consulting are billed separately, except for small customers
+during launch.</p>
+<ul>
+<li><p><strong>Small customers (free tier, pilots, Team, Team Plus,
+Business):</strong> no FDE fees while Airbrx gets off the ground,
+including manual warehouse routing setup if routing is offered
+(assumption). This is a launch policy and can change later; say so up
+front.</p></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Manual routing (assumption):</strong> FDEs
+would configure warehouse routing by hand, free for small customers. Not
+confirmed.</p>
+<ul>
+<li><p><span class="badge out">Outstanding</span> <strong>Automated routing:</strong> no confirmed
+intent to build it.</p></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Free FDE hour cap:</strong> draft, a few
+hours per customer. Covers setup and routing between warehouses the
+customer already has; a full warehouse redesign is a paid
+project.</p></li>
+</ul></li>
+<li><p><span class="badge out">Outstanding</span> <strong>Pro and Enterprise:</strong> FDE billed at an
+FDE rate (to set). Open: include initial routing setup in the pilot to
+win the account.</p></li>
+<li><p><strong>Channel partners</strong> can deliver FDE work themselves
+or bill through Airbrx.</p></li>
+<li><p><strong>Free year:</strong> last resort only. Founder approval, a
+large deal that is stuck, written into that contract. Never in outreach
+or on the website.</p></li>
+<li><p><strong>Referrals:</strong> 15% of the customer's first-year
+subscription for a closed deal.</p></li>
+</ul>
+<h2 id="worked-examples">Worked examples</h2>
+<p>Every example keeps at least 3x what it pays Airbrx. Illustrative
+figures, not customer data. The Pro and Enterprise meter is shown at 20%
+of cost avoided; a usage meter would be set to land in a similar
+range.</p>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 13%" />
+<col style="width: 14%" />
+<col style="width: 18%" />
+<col style="width: 13%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Company</th>
+<th>Cost avoided per month (USD)</th>
+<th>Plan</th>
+<th>Paid to Airbrx (USD/mo)</th>
+<th>Net savings (USD/mo)</th>
+<th>Return</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Startup, one dashboard</td>
+<td>$400</td>
+<td>Free tier</td>
+<td>$0</td>
+<td>$400</td>
+<td>All kept</td>
+</tr>
+<tr class="even">
+<td>Small team, one agent</td>
+<td>$1,000</td>
+<td>Team</td>
+<td>$299</td>
+<td>$701</td>
+<td>3.3x</td>
+</tr>
+<tr class="odd">
+<td>Small company, BI plus agent</td>
+<td>$3,000</td>
+<td>Team Plus</td>
+<td>$699</td>
+<td>$2,301</td>
+<td>4.3x</td>
+</tr>
+<tr class="even">
+<td>Growing company, several workloads</td>
+<td>$7,000</td>
+<td>Business</td>
+<td>$1,999</td>
+<td>$5,001</td>
+<td>3.5x</td>
+</tr>
+<tr class="odd">
+<td>Mid-size, several teams</td>
+<td>$25,000</td>
+<td>Pro</td>
+<td>$7,999 ($2,999 + $5,000 meter)</td>
+<td>$17,001</td>
+<td>3.1x</td>
+</tr>
+<tr class="even">
+<td>Large, 1M queries/day</td>
+<td>$100,000</td>
+<td>Enterprise</td>
+<td>$28,999 ($8,999 + $20,000 meter)</td>
+<td>$71,001</td>
+<td>3.4x</td>
+</tr>
+</tbody>
+</table>
+<p>For scale: the scenario model puts AiRBRX's savings at 21% to 35% of
+the warehouse bill at 1M queries a day, so the Enterprise row fits a
+warehouse bill of roughly $300,000 to $475,000 a month.</p>
+<h2 id="why-these-choices">Why these choices</h2>
+<p>Each decision keeps the price fixed and the value checkable against
+the buyer's own bill.</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 52%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Decision</th>
+<th>Justification</th>
+<th>Alternative we passed on</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fixed plans stepped by tenants, warehouses and users</td>
+<td>Buyers can count these and budget a fixed bill. Pricing on savings
+can feel like a trap to decision makers.</td>
+<td>Savings bands on every plan (Nov 2 draft); 10¢/GB of cache hits (not
+comparable to the bill); four ABU meters (matches our cost, but another
+meter to fear)</td>
+</tr>
+<tr class="even">
+<td>Show savings in the buyer's units</td>
+<td>Credits and DBUs are on the bill a CFO already reads. It proves ROI
+at renewal.</td>
+<td>GB or request counts</td>
+</tr>
+<tr class="odd">
+<td>Flat plans for small customers</td>
+<td>Small teams want a fixed, budgetable bill and fast approval.</td>
+<td>Metering everyone</td>
+</tr>
+<tr class="even">
+<td>Metered charge on Pro and Enterprise</td>
+<td>Large accounts vary 10x or more in usage. A meter scales with them,
+so smaller large accounts aren't overcharged and the biggest pay their
+share.</td>
+<td>Very high flat prices, or many more tiers</td>
+</tr>
+<tr class="odd">
+<td>Free pilot for every company</td>
+<td>Savings can't be shown before live traffic, and the baseline comes
+from the pilot.</td>
+<td>Paid pilots (slows deals)</td>
+</tr>
+<tr class="even">
+<td>Free tier with no end date</td>
+<td>Cheap to serve, builds word of mouth and real usage data, and
+startups grow into plans.</td>
+<td>Time-limited trial only</td>
+</tr>
+<tr class="odd">
+<td>Routing on every paid plan</td>
+<td>If offered, routing is what makes small customers pay off, where
+caching alone saves little.</td>
+<td>Pro-only feature</td>
+</tr>
+<tr class="even">
+<td>Bill routing only once proven</td>
+<td>Keeps every billed number testable. Credibility is worth more than
+early revenue.</td>
+<td>Bill estimated routing savings now</td>
+</tr>
+<tr class="odd">
+<td>No FDE fees for small customers at launch</td>
+<td>Removes friction while we build references; the cost pays back as
+savings move them up plans.</td>
+<td>FDE fees from day one</td>
+</tr>
+<tr class="even">
+<td>Features step up by plan</td>
+<td>Savings alone is a weak reason to move up; governance, SSO and
+self-hosting are things buyers can name.</td>
+<td>Same features on every plan</td>
+</tr>
+<tr class="odd">
+<td>Annual prepay = 10 months</td>
+<td>Standard discount, improves cash and retention.</td>
+<td>Bigger discounts</td>
+</tr>
+</tbody>
+</table>
+<h2 id="metering-for-large-accounts">Metering for large accounts</h2>
+<p>Pro and Enterprise pay a platform fee plus a monthly meter. What the
+meter is based on is the open decision.</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>How it works</th>
+<th>For</th>
+<th>Against</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Usage meter</td>
+<td>Billed on cached requests, or Michael's 4 ABU components (storage,
+cache hit, cache miss, rule evaluation), with a calculator in credits or
+DBUs</td>
+<td>Matches Airbrx's real costs; makes no claim about the customer's
+waste; doesn't wait on savings measurement</td>
+<td>Another meter for buyers to watch; needs budget caps</td>
+</tr>
+<tr class="even">
+<td>Savings share</td>
+<td>20% of warehouse cost avoided, from the monthly statement</td>
+<td>Tracks value; half Keebo's ~40%</td>
+<td>Can read as a trap to decision makers (Ben); needs savings measured
+within about 10% before billing</td>
+</tr>
+</tbody>
+</table>
+<p>Either way, Pro and Enterprise get budget caps and spend alerts, and
+Enterprise can negotiate a ceiling or annual true-up.</p>
+<p><strong>Why six plans, not two.</strong> Two prices are simpler to
+sell, but usage runs from a 10k/day dashboard to 1M/day agents. With two
+prices, most customers would pay far above or below the value they get.
+Six plans keep each step small and give buyers a named reason to move up
+(governance, SSO, self-hosting).</p>
+<h2 id="competitive-comparison">Competitive comparison</h2>
+<p>Airbrx competes rather than partners: caching (plus routing, if
+Airbrx offers it) in one gateway, with fixed prices for most teams,
+where point tools take about 40% of savings.</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 37%" />
+<col style="width: 17%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>What it does</th>
+<th>How it charges</th>
+<th>Airbrx angle</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Airbrx</td>
+<td>Memory for repeat queries; routing misses to the right warehouse is
+an open question</td>
+<td>Free tier and fixed plans; Pro and Enterprise add a meter</td>
+<td>One install; fixed for most teams, metered for large accounts</td>
+</tr>
+<tr class="even">
+<td><a
+href="https://keebo.ai/blog/snowflake-query-routing/">Keebo</a></td>
+<td>Automatic warehouse tuning and query routing (Snowflake,
+Databricks)</td>
+<td>About 40% of savings (<a
+href="https://select.dev/docs/select-vs-keebo">SELECT</a>)</td>
+<td>Same endpoint model; we remove repeats first, then route (if
+offered)</td>
+</tr>
+<tr class="odd">
+<td><a
+href="https://www.babylist.com/engineering/blog/snowflake-cost-agents">Espresso
+AI</a></td>
+<td>Proxy that routes each query and scales warehouses (Snowflake)</td>
+<td>Share of savings</td>
+<td>Snowflake only; no memory</td>
+</tr>
+<tr class="even">
+<td><a href="https://yukidata.com/?p=3199">Yuki</a></td>
+<td>Dynamic routing for Snowflake</td>
+<td>Not checked</td>
+<td>Snowflake only</td>
+</tr>
+<tr class="odd">
+<td>Native result caches</td>
+<td>Free exact-match caching inside Snowflake and Databricks</td>
+<td>Included</td>
+<td>Narrow: exact text, 24 h, data unchanged; Databricks needs the
+warehouse running</td>
+</tr>
+</tbody>
+</table>
+<p>Whether to offer routing at all is open. If Airbrx does, it would
+start as FDE setup competing against their software, with price, free
+setup for small teams and memory as the edge.</p>
+<h2 id="roadmap">Roadmap</h2>
+<p><span class="badge out">Outstanding</span> Pricing launches as drafted, then each later step waits
+on proof from real bills. Dates after Dec 17 are drafts.</p>
+<figure><img src="img/pricing-roadmap.png" alt="Pricing roadmap: 4 phases, 3 gates"><figcaption>Pricing roadmap: 4 phases, 3 gates</figcaption></figure>
+<h2 id="risks-and-open-decisions">Risks and open decisions</h2>
+<p>Measurement gates billing only if the large-account meter is a
+savings share. Either way, the biggest risk is credibility: the savings
+statement has to match the real bill change, or the ROI story falls
+apart.</p>
+<p><strong>Risks</strong></p>
+<ul>
+<li><p><strong>Business to Pro jump:</strong> $1,999 to $2,999 plus the
+meter. Pro must also sell on governance features (audit log, custom
+rules, SSO).</p></li>
+<li><p><strong>Thin savings at low volume:</strong> at 10k queries/day,
+caching alone saves little unless repeats are high. Routing (if offered)
+and the free tier would carry these customers.</p></li>
+<li><p><strong>Free FDE time:</strong> unpaid work that doesn't scale.
+Cap hours per customer and track payback as plan upgrades.</p></li>
+<li><p><strong>Ending launch offers:</strong> customers on free FDE or
+long pilots will expect them to continue. Say up front they are launch
+offers.</p></li>
+<li><p><strong>Audit log vs the pitch:</strong> the pitch promises a
+full audit log of AI queries; this plan keeps the full log on Pro.
+Adjust one or the other.</p></li>
+<li><p><strong>Storage cost on flat plans:</strong> absorbed in margin
+for now; a cache-size limit may be needed.</p></li>
+</ul>
+<p><span class="badge out">Outstanding</span> <strong>Open decisions for the founders</strong></p>
+<ul class="task-list">
+<li><p><label><input type="checkbox" /><strong>Can Airbrx accurately
+measure savings per tenant?</strong> Michael to confirm the method and
+effort; needed for the statement, and for billing if the meter is a
+savings share</label></p></li>
+<li><p><label><input type="checkbox" /><strong>Routing:</strong> is
+there intent to offer it at all, manual (FDE) or automated? If so,
+effort and timing</label></p></li>
+<li><p><label><input type="checkbox" />Approve the model: free pilot,
+free forever with a cap, fixed plans through Business, platform fee plus
+meter on Pro and Enterprise, savings as proof on every plan. Set where
+the free-tier cap sits</label></p></li>
+<li><p><label><input type="checkbox" />Accuracy target for the savings
+statement and how we prove it (draft: within 10%)</label></p></li>
+<li><p><label><input type="checkbox" />Postgres-only pricing: estimated
+compute saved, or requests</label></p></li>
+<li><p><label><input type="checkbox" />Pro and Enterprise meter basis:
+usage (cached requests or ABUs) or 20% of cost avoided; ceiling or
+annual true-up for Enterprise</label></p></li>
+<li><p><label><input type="checkbox" />FDE rate for Pro and Enterprise,
+and whether pilots include routing setup</label></p></li>
+<li><p><label><input type="checkbox" />Hour cap on free FDE help for
+small customers, and when to revisit the policy</label></p></li>
+<li><p><label><input type="checkbox" />Who approves pilot extensions and
+the free year</label></p></li>
+<li><p><label><input type="checkbox" />Confirm the features marked †
+(users, SSO/SAML, audit export, SIEM export, uptime
+SLA)</label></p></li>
+<li><p><label><input type="checkbox" />Check limits and prices against
+current tenants (Ben's data)</label></p></li>
+</ul>

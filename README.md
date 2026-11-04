@@ -6,4 +6,6 @@ A clickable concept prototype by Adam Rogowicz proposing an onboarding flow for 
 
 View it at https://zciwogor.github.io/airbrx-onboarding-concept/
 
+Product docs hub (pricing, GTM plan, PRD, evangelist guide, with PDFs, revision log and comments): https://zciwogor.github.io/airbrx-onboarding-concept/docs/
+
 Bill-language value calculator (Snowflake, Databricks, Postgres): https://zciwogor.github.io/airbrx-onboarding-concept/calculator/

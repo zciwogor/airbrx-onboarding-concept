@@ -1,0 +1,14 @@
+[
+  {"date": "2026-11-04", "doc": "pricing", "version": "v4", "summary": "Roadmap diagram updated: Pro and Enterprise show fee plus meter, founder sign-off includes the meter basis, bands renamed to plan limits."},
+  {"date": "2026-11-04", "doc": "guide", "version": "v2", "summary": "Added a \"How much does it cost?\" answer (pricing being finalized, try it first). Removed the Nov 4 Fabric User Group event."},
+  {"date": "2026-11-03", "doc": "pricing", "version": "v3", "summary": "Fixed plans through Business stay unmetered; Pro and Enterprise get a platform fee plus a meter. New \"Metering for large accounts\" section compares a usage meter with a 20% savings share. Six tiers kept, with a note on why not two."},
+  {"date": "2026-11-03", "doc": "gtm", "version": "v3", "summary": "Pricing language aligned with the metered Pro and Enterprise plans."},
+  {"date": "2026-11-03", "doc": "prd", "version": "v3", "summary": "Pricing section and open questions aligned with the metered Pro and Enterprise plans."},
+  {"date": "2026-11-03", "doc": "pricing", "version": "v2", "summary": "After Michael and Ben questioned savings-based pricing: plans placed by tenants, warehouses and users instead of savings bands; free forever under a usage cap; savings shown as proof; \"you pay only when you save\" removed."},
+  {"date": "2026-11-03", "doc": "gtm", "version": "v2", "summary": "Added a five-line summary for the founders at the top; pricing section points to the Pricing Plan."},
+  {"date": "2026-11-03", "doc": "prd", "version": "v2", "summary": "Added a \"check my understanding\" note; pricing aligned with the Pricing Plan."},
+  {"date": "2026-11-03", "doc": "prd", "version": "v1", "summary": "First draft: features, launch scope, feature catalog, open questions."},
+  {"date": "2026-11-03", "doc": "guide", "version": "v1", "summary": "First draft for evangelists: pitch, qualifying questions, approved claims, answers to common questions, handoff."},
+  {"date": "2026-11-02", "doc": "pricing", "version": "v1", "summary": "Savings-banded draft sent to Michael: free pilot, flat plans $299 to $1,999, Pro and Enterprise fee plus 20% of cost avoided. Replaced the Oct 29 per-GB draft."},
+  {"date": "2026-10-31", "doc": "gtm", "version": "v1", "summary": "First draft: segments, funnel, alternatives, commercialization, marketing, journey maps, 90-day plan, founder decisions."}
+]

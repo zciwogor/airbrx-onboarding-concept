@@ -1,0 +1,46 @@
+{
+  "title": "Airbrx product docs",
+  "owner": "Adam Rogowicz, Product Lead",
+  "docs": [
+    {
+      "id": "pricing",
+      "file": "pricing-plan.html",
+      "title": "Airbrx Pricing Plan",
+      "content": "content/pricing.html",
+      "pdf": "pdf/airbrx-pricing-plan.pdf",
+      "version": "v4",
+      "updated": "2026-11-04",
+      "status": "Draft for the founders"
+    },
+    {
+      "id": "gtm",
+      "file": "go-to-market.html",
+      "title": "Airbrx Go-to-Market Plan",
+      "content": "content/gtm.html",
+      "pdf": "pdf/airbrx-go-to-market-plan.pdf",
+      "version": "v3",
+      "updated": "2026-11-03",
+      "status": "Draft for the founders"
+    },
+    {
+      "id": "prd",
+      "file": "prd-commercial-launch.html",
+      "title": "AiRBRX PRD: Features and Commercial Launch",
+      "content": "content/prd.html",
+      "pdf": "pdf/airbrx-prd-commercial-launch.pdf",
+      "version": "v3",
+      "updated": "2026-11-03",
+      "status": "Draft for the founders"
+    },
+    {
+      "id": "guide",
+      "file": "evangelist-guide.html",
+      "title": "How to Sell Airbrx: Evangelist Guide",
+      "content": "content/guide.html",
+      "pdf": "pdf/airbrx-evangelist-guide.pdf",
+      "version": "v2",
+      "updated": "2026-11-04",
+      "status": "For evangelists"
+    }
+  ]
+}
